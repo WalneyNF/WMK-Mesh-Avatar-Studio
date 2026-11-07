@@ -1,259 +1,113 @@
-# Mesh Avatar Studio
+# <img src="public/wmk-avatar-logo.jpg" alt="WMK" width="52" height="52" align="absmiddle"> WMK Mesh Avatar Studio
 
-[日本語](README.ja.md) · [简体中文](README.zh.md)
+**Walney Moreira Klein — walneyk@hotmail.com**
 
-Turn a single illustration into an animated 2D mesh avatar: it blinks, talks, turns its head,
-breathes and sways its hair. A coding agent prepares the avatar from your image; you fine-tune
-it in a local editor with a live preview.
+[English](README.en.md) · [日本語](README.ja.md) · [简体中文](README.zh.md)
 
-See it move on the [landing page](https://shinshin86.github.io/mesh-avatar-studio/).
-To move it with your own face and voice without installing anything, open the
-[Player](https://shinshin86.github.io/mesh-avatar-studio/play/) in Chrome or Edge.
+## O que é?
 
-![The editor with the Miko sample](docs/images/en/01-overview.png)
+O WMK Mesh Avatar Studio é um editor de avatares animados em 2D. A partir de uma ilustração PNG, um agente de programação prepara camadas e um arquivo de configuração (rig). No editor, você ajusta olhos, boca, cabeça, cabelo, corpo e pré-visualiza os movimentos. O modo Live permite controlar o avatar com webcam e microfone; a visualização pode ser capturada no OBS.
 
-## Try the sample
+> **Importante:** o programa não converte automaticamente qualquer foto em avatar pronto apenas com um clique. A preparação das camadas e do rig exige um fluxo de criação, normalmente assistido por agente de programação.
 
-Requires Node.js 22.17+ and Git.
+## Requisitos
 
-```sh
-npx create-mesh-avatar-studio
+- Windows 10/11, macOS ou Linux.
+- Node.js 22.17 ou superior, npm e Git.
+- Python e uv para reconstruir camadas e fluxos de criação.
+- Chromium do Playwright para revisões de movimento e alguns testes visuais.
+- Webcam e microfone opcionais para o modo Live.
+
+## Instalação no Windows
+
+Abra PowerShell ou Prompt de Comando:
+
+```bat
+cd /d C:erramentas
+git clone https://github.com/WalneyNF/mesh-avatar-studio.git
 cd mesh-avatar-studio
+npm install
+npm run doctor
 npm run dev
 ```
 
-The first command downloads the repository, installs its packages and checks the tools
-Studio needs. If you cloned the repository yourself, run `npm install`, then
-`npm run doctor` for the same check. Only Node.js is needed for the editor and the Live
-page. uv and Python rebuild layers, and Playwright Chromium renders the motion review when
-an agent creates an avatar; the check warns about each one that is missing.
+Se você já instalou o projeto, **não clone novamente**. Basta entrar na pasta existente e executar `npm run doctor` e `npm run dev`.
 
-Open the URL printed in the terminal (for example `http://127.0.0.1:5173/`). The editor opens
-the bundled sample, Miko in a qipao. Pick a part on the left, drag its dots on the image and
-watch the preview on the right. The sample is read-only; when you change it, choose
-**Copy and keep editing** to continue in your own copy.
+Abra o endereço mostrado pelo Vite, geralmente `http://127.0.0.1:5173/`. Se a porta estiver ocupada, use o endereço informado pelo terminal. Escolha **PT-BR** no seletor de idiomas.
 
-### Using Windows
+### Dependência opcional para criação e testes
 
-Use `git clone` to download the repository when possible. If you use a ZIP, open its
-Properties in File Explorer and select **Unblock**, if shown, before extracting it.
-
-Create `projects/` yourself under your Windows account before asking an agent to work in it
-(`npx create-mesh-avatar-studio` creates it for you).
-Folders created by another account or an agent running in a sandbox can have permissions
-that prevent the editor from reading them. If a project cannot be read, use the folder's
-**Properties → Security** settings to grant your account access to the whole project,
-including its files and subfolders through permission inheritance.
-
-## How it works
-
-Making an avatar from your own illustration takes four steps. Steps 1 and 4 are done by a
-coding agent (Claude Code or Codex) working in this repository; steps 2 and 3 happen in the
-editor.
-
-### 1. Ask your agent to create the avatar
-
-Open Claude Code or Codex in this repository folder and give it your illustration:
-
-> Create an avatar from this image following docs/agent-guide.md: `/path/to/your-image.png`
-
-The agent follows [the agent guide](docs/agent-guide.md): it checks how accurately it reads
-coordinates, places the rig on zoomed grids, cuts the image into layers and reviews the
-avatar in fixed poses. The project is saved in `projects/<name>/`, which is never committed.
-Best results come from a front-facing, head-and-shoulders PNG with a transparent background.
-When no project is open, the editor shows this request ready to copy.
-
-![The request for a new avatar](docs/images/en/06-new-project.png)
-
-Recommended setups:
-
-| Agent | Model |
-|---|---|
-| Claude Code | Claude Opus 5.5 |
-| Codex | GPT-6.1 Sol |
-
-#### One command with Codex
-
-With the [Codex CLI](https://github.com/openai/codex) installed and signed in, one command
-creates the project, has Codex follow the agent guide without questions and opens the editor
-on the result:
-
-```sh
-npm run create -- /path/to/your-image.png
+```bat
+npx playwright install chromium
 ```
 
-Codex also draws closed eyes, mouth shapes and expressions with OpenAI image generation, and
-first closes an open mouth in the illustration so the avatar rests with it closed. This sends
-the image and masks to OpenAI, so the command asks first; add `--yes` to agree in advance, or
-`--no-variants` to keep everything on your machine. It usually takes tens of minutes. Codex writes its notes to `projects/<name>/HANDOVER.md`. It runs with
-`--approve-for-me`, so its requests to run tools outside its sandbox, such as Chromium for the
-pose review, are reviewed automatically instead of by you. `npm run create -- --help` lists the
-options.
+Esse download pode consumir espaço em disco. O editor e a página Live podem funcionar sem ele, mas algumas rotinas de criação e testes exigem o navegador.
 
-Without an illustration, `--random` has Codex draw a new anime-style girl first and builds the
-avatar from her. Her looks are chosen at random; `--prompt` describes what you want instead,
-and `--seed` repeats the same random choices. The drawing is kept in `work/random/`, and the
-choices in `projects/<name>/work/character.json`.
+## Primeiro contato: passo a passo
 
-```sh
-npm run create -- --random
-npm run create -- --random --prompt "silver short hair, school uniform"
+1. Inicie o editor com `npm run dev`.
+2. Abra o projeto de exemplo Miko para explorar a interface. O exemplo original é somente leitura.
+3. Escolha uma parte na lista à esquerda: olhos, boca, cabeça, cabelo ou corpo.
+4. Arraste os pontos sobre a imagem e acompanhe a pré-visualização.
+5. Para editar o exemplo, use a opção de **copiar e continuar editando**.
+6. Salve as alterações do rig. Se mudar contornos que afetam as camadas, reconstrua as camadas antes de exportar.
+
+## Criar um avatar próprio
+
+Use preferencialmente uma ilustração frontal em PNG com fundo transparente. Um agente de programação pode seguir [o guia técnico](docs/agent-guide.md) para gerar a pasta em `projects/NOME/`, incluindo `source.png`, `rig.json`, `layers.json` e os recursos em `built/`.
+
+Você também pode estudar o fluxo com:
+
+```bat
+npm run create -- --help
 ```
 
-### 2. Open the project and check it
+Algumas opções de geração podem enviar imagens a serviços externos de IA, mediante consentimento. Consulte as opções de privacidade e `--no-variants` antes de usar.
 
-Start the editor (`npm run dev`), choose **Open project** and pick your project from the list.
-The pencil next to a project renames it, together with its folder under `projects/`.
-If the avatar has overlay layers such as glasses (`built/overlays/`), the preview lists them
-under **Overlays** so you can switch them on and off.
-In the preview, use **Pose test** to turn and tilt the head and close the eyes. In **Lip sync**,
-choose a mouth style and try it with kana text. Open **Fine-tune** to adjust movement, size
-and closing, or preview a local audio file.
+## Importação e exportação
 
-![Lip sync check](docs/images/en/03-lip-sync.png)
+No editor, use **Exportar .mavatar** para compartilhar o avatar, com rig, camadas e metadados. Inclua a imagem original se desejar permitir edições posteriores. A importação cria um projeto local. Arquivos sem imagem original podem ser reproduzidos, mas não totalmente reeditados.
 
-### 3. Fix what looks wrong by dragging
+## Webcam, microfone e OBS
 
-Select a part on the left. Its dots are highlighted on the image; drag them to fix the
-placement. The preview follows your changes immediately. Some values also decide how the image
-is cut into layers: eye and hand outlines, and the head, hair and bun areas used for the hair
-mask. After changing those, a banner appears; choose **Save and rebuild layers** there. It takes
-a few seconds.
+1. Abra um projeto no editor e entre em **Live**.
+2. Autorize a webcam e, opcionalmente, o microfone no navegador.
+3. Posicione o rosto de frente e execute a calibração.
+4. Ajuste sensibilidade, suavização, espelhamento e expressões.
+5. Copie a URL de transmissão para uma **Fonte de navegador** no OBS.
+6. Mantenha a página Live aberta enquanto transmitir.
 
-![Editing the eye outline](docs/images/en/02-edit-handles.png)
+O rastreamento facial usa MediaPipe. A transmissão local encaminha valores numéricos de movimento; consulte a documentação de privacidade e transmissão antes de expor o serviço em uma rede.
 
-![Rebuilding layers after changing an outline](docs/images/en/04-rebuild.png)
+## Comandos para desenvolvedores
 
-Zoom with a pinch or Ctrl/Cmd+scroll, pan with two fingers or by dragging empty space, and use
-**Fit selected part** to jump to the current part.
+```bat
+npm run dev
+npm run build
+npm test
+npm run lint
+npm run doctor
+npm run e2e
+```
 
-### 4. Get drawn eyes and mouths
+**Estrutura principal:** `src/editor` (interface e rig), `src/live` (webcam e transmissão), `src/lighting` (iluminação), `src/server` (API local), `packages/runtime` (motor), `packages/element` e `packages/react` (integrações).
 
-Without drawings, the eyes and mouth move by mesh deformation alone. Drawn closed eyes and
-vowel mouths make blinking and talking look much more natural. In **Drawn variants**, check
-**Eyes**, **Mouth** or both, copy the message and paste it into Codex opened in this
-repository folder. Codex draws them with its built-in image generation and imports them; the
-editor reloads them automatically. (Claude Code cannot generate images; its message prepares
-the masks and prompts for you to hand to an image generator.)
+A tradução PT-BR está em desenvolvimento; alguns módulos ainda apresentam termos em inglês. A identidade WMK utiliza a paleta azul-noturno, ciano, violeta e magenta.
 
-**Expressions** is optional: it adds drawn sad and surprised eyes and closed angry and sad
-mouths. The avatar switches to them for those expressions and emotion tags and still blinks
-and speaks; avatars without them look the same as before.
+## Personalização visual
 
-![Requesting drawn mouths](docs/images/en/05-variants.png)
+A logo oficial deve ficar em `public/wmk-avatar-logo.jpg`. Os estilos estão em `src/editor/style.css` e `src/live/live.css`. Veja também o [raio X técnico](RAIO-X-WMK-PTBR.html).
 
-## Share your avatar
+## Solução de problemas
 
-Choose **Export .mavatar** in the editor to download one file containing the saved rig,
-built layers, drawn expressions and avatar metadata. **Include source image** is on by
-default so the recipient can edit it in Studio. If you have unsaved edits, use **Save and
-export**; changed outlines need a layer rebuild first. Read-only views export the original files.
+- **Porta ocupada:** use a URL informada pelo Vite.
+- **Dependências ausentes:** execute `npm install` e depois `npm run doctor`.
+- **Sem acesso à webcam:** confira permissões do navegador e se outra aplicação está usando a câmera.
+- **Projeto não abre:** confira `rig.json`, `layers.json`, imagens e permissões da pasta.
+- **Falha EPERM em testes de links simbólicos:** no Windows, alguns testes exigem permissão para criar symlinks; não altere a segurança do sistema sem avaliar a necessidade.
 
-In **Open project**, choose **Import .mavatar** or drop the file there. Studio creates a new
-folder under `projects/`, using a new name if one already exists. Import requires `npm run dev`
-and accepts archives up to 128 MiB. Without the source image, the imported avatar can play but
-cannot be edited or rebuilt. Omitting the source does not remove the built images.
-See the [avatar format](docs/format.md) for the file contents.
+## Licenças e créditos
 
-## Live and streaming
+Este fork preserva os direitos e licenças dos autores e componentes originais. O código original é MIT, mas **o personagem de exemplo Miko não é coberto pela licença MIT**; consulte [os termos do personagem](samples/miko-qipao/MIKO_ASSET_TERMS.md). MediaPipe e modelos relacionados têm licenças próprias em `vendor/mediapipe/`.
 
-![The Live page](docs/images/en/07-live.png)
-
-Open your project in the editor and choose **Live**. Start the camera, face forward with
-relaxed eyes and a closed mouth, then choose **Calibrate**. You can adjust mirroring,
-sensitivity and smoothing, or enable microphone lip sync. Camera video and microphone
-audio stay on your machine; only numeric avatar motion values reach the stream view.
-
-**Track body movement (experimental)** is off by default. While it is off, only the face
-is tracked, as before. When it is on, Live also uses visible shoulders, hips,
-elbows and wrists, and lists what the loaded avatar follows: the upper body always, legs
-and arms only when its rig sets them up. Body points from a webcam are less stable than
-the face, so expect some extra sway, especially in skirts and other cloth. See
-[Full-body tracking](docs/reference.md#full-body-tracking-experimental).
-
-Choose a background and **Copy OBS URL**, or **Open stream view in a new tab** to check it first. Keep the Live page open and add the URL as an
-OBS **Browser Source**, for example at **1080 × 1080**. The transparent background works
-directly in OBS. For other capture software, choose green and apply a chroma key.
-Both pages use the local development server (`npm run dev`). The stream view shows idle
-motion when the Live page stops sending updates.
-
-Optional **Lighting** adds shading that follows a light you drag over the avatar. It is off
-by default; open its section near the bottom of the Live page, or below the preview in the
-editor. The OBS URL includes the lighting settings. See [Lighting](docs/reference.md#lighting).
-
-If the avatar has overlay layers such as glasses (`built/overlays/`), the **Overlays** section
-of the Live page switches them on and off. The stream view follows at once, and the OBS URL
-includes the overlays that are shown.
-
-Keep the Live page open in its own window. Open the OBS URL inside OBS or in another
-tab; do not paste it into the tab running Live. If the page reports that tracking has
-stopped or slowed while hidden, bring its window to the front.
-
-![The stream view with a green background](docs/images/en/08-stream.png)
-
-Switch expressions such as a smile, surprise or a wink with the **Expression** buttons or
-keys **1**–**8** while tracking continues. A Stream Deck button or a keyboard shortcut can
-switch them while another app such as OBS is in front; macOS Shortcuts keys do not work in
-every app ([details](docs/reference.md#switching-expressions-from-other-apps)).
-
-Save up to eight lighting setups, such as a red light from below for a horror game, as
-presets, and switch them with **Shift**+**1**–**8** or the same kind of shortcut
-([details](docs/reference.md#lighting-presets)).
-
-The camera is optional: with only the microphone on, the avatar keeps its idle motion and
-your voice moves the mouth. To appear as the avatar in Zoom, Google Meet and similar apps, use
-OBS's Virtual Camera ([steps](docs/reference.md#video-calls)).
-
-Stream view options, troubleshooting and privacy details are in the
-[reference](docs/reference.md#live-and-streaming).
-
-### Without installing anything
-
-The [Player](https://shinshin86.github.io/mesh-avatar-studio/play/) runs face tracking,
-microphone lip sync, expressions and lighting entirely in the browser. Open the sample or
-your own `.mavatar` file; nothing is uploaded. It has no stream URL: choose **Open avatar
-window** (Chrome or Edge) and add that window to OBS with **Window Capture** on a green
-background and a Chroma Key filter. Transparency, the OBS Browser Source and switching
-expressions from other apps need Studio's Live page.
-
-## Experimental native runtime
-
-A Rust runtime, PNG renderer and transparent macOS desktop avatar are available in
-[the native guide](native/README.md). They load the same `.mavatar` files and built
-project folders as the JavaScript runtime. The native version is experimental;
-its APIs and controls may change.
-
-## Releases
-
-For changes to `mesh-avatar`, run `npm run changeset` and include the generated file in your
-PR. On `main`, GitHub Actions opens or updates a `chore: version packages` PR with the next
-version and changelog; merging it publishes `mesh-avatar` to npm with provenance. The Studio
-root package stays private. Publishing uses npm trusted publishing: on npmjs.com, add a trusted publisher for
-`mesh-avatar` that names this repository and the `release.yml` workflow; no npm token is stored
-in the repository. A publish that npm cannot match to a trusted publisher waits in the
-Staged Packages tab until a maintainer approves it with 2FA. In repository
-Settings → Actions → General, enable **Allow GitHub Actions to create and approve pull requests**
-so the workflow can open version PRs. Run `npm run e2e`
-locally before opening a PR; CI runs the other checks and does not install Playwright browsers.
-
-## More
-
-- [Agent guide](docs/agent-guide.md): the step-by-step procedure agents follow
-- [Reference](docs/reference.md): projects, building layers by hand, all editor controls, tests
-- [Rig fields](docs/rig-fields.md): what every value in `rig.json` means
-- [Avatar format](docs/format.md): folder and `.mavatar` layouts, metadata and validation
-
-## License
-
-The code is released under the [MIT License](LICENSE).
-
-The sample character Miko (`samples/miko-qipao/`) is not covered by the MIT License. Miko is the
-character of AITuber OnAir, © Yuki Shindo (AITuber OnAir), and her images are provided under the
-[Miko Character Usage Guidelines](https://miko.aituberonair.com/#terms); see
-[samples/miko-qipao/MIKO_ASSET_TERMS.md](samples/miko-qipao/MIKO_ASSET_TERMS.md). They may be used
-and modified as part of your own works, but not redistributed on their own or as an asset
-collection. This project is not an official AITuber OnAir product.
-
-Face tracking and the experimental body tracking use [MediaPipe](https://github.com/google-ai-edge/mediapipe)
-(`@mediapipe/tasks-vision` and the Face Landmarker and Pose Landmarker lite models in `vendor/mediapipe/`), © The MediaPipe Authors, licensed under the
-Apache License 2.0; see [vendor/mediapipe/LICENSE](vendor/mediapipe/LICENSE).
+**Personalização WMK:** Walney Moreira Klein — walneyk@hotmail.com.
