@@ -120,4 +120,4 @@ Este fork preserva os direitos e licenças dos autores e componentes originais. 
 - [Índice público dos manuais](manuais/index.html)
 - [Manual completo dos testes do NEX](manuais/manual-completo-testes-nex.html)
 
-**Estado atual:** somente o manual de testes do NEX está confirmado como publicado nesta pasta. Outros guias e funcionalidades permanecem na cópia local e ainda precisam de revisão e publicação. O manual distingue testes verificados de animações experimentais.
+**Estado atual:** os manuais, exemplos do NEX e código dos laboratórios estão publicados. A geração de WAV por texto livre requer Windows e o servidor Vite local, com PowerShell e System.Speech. A sincronização labial por texto livre continua aproximada; veja o manual de testes. O build passou, mas a instalação limpa em outra máquina ainda não foi validada.
