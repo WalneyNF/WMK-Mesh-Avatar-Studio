@@ -1,4 +1,4 @@
-# <img src="public/wmk-avatar-logo.jpg" alt="WMK" width="52" height="52" align="absmiddle"> WMK Mesh Avatar Studio
+# <img src="logo.png" alt="WMK" width="52" height="52" align="absmiddle"> WMK Mesh Avatar Studio
 
 **Walney Moreira Klein — walneyk@hotmail.com**
 
@@ -96,7 +96,7 @@ A tradução PT-BR está em desenvolvimento; alguns módulos ainda apresentam te
 
 ## Personalização visual
 
-A logo oficial deve ficar em `public/wmk-avatar-logo.jpg`. Os estilos estão em `src/editor/style.css` e `src/live/live.css`. Veja também o [raio X técnico](RAIO-X-WMK-PTBR.html).
+A logo oficial deve ficar em `logo.png`. Os estilos estão em `src/editor/style.css` e `src/live/live.css`. Veja também o [raio X técnico](RAIO-X-WMK-PTBR.html).
 
 ## Solução de problemas
 
