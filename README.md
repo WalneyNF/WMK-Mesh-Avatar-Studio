@@ -117,6 +117,7 @@ Este fork preserva os direitos e licenças dos autores e componentes originais. 
 
 ## Documentação em português
 
+- [Curso aberto: Como fazer um avatar falar](manuais/curso-aberto-avatar-falante.html)
 - [Índice público dos manuais](manuais/index.html)
 - [Manual completo dos testes do NEX](manuais/manual-completo-testes-nex.html)
 
