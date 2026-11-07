@@ -4,14 +4,15 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { localProjectsPlugin } from './src/server/local-projects';
 import { mediapipeAssets } from './src/server/mediapipe-assets';
+import { nexSpeechPlugin } from './src/server/nex-speech';
 import { liveRelay } from './src/server/live-relay';
 export default defineConfig({
   resolve: { alias: {
     'mesh-avatar': fileURLToPath(new URL('./packages/runtime/src/index.ts', import.meta.url)),
     'mesh-avatar-element': fileURLToPath(new URL('./packages/element/src/index.ts', import.meta.url)),
   } },
-  server: { host: '127.0.0.1' },
-  plugins: [react(), localProjectsPlugin(fileURLToPath(new URL('.', import.meta.url))), mediapipeAssets(fileURLToPath(new URL('.', import.meta.url))), liveRelay(fileURLToPath(new URL('.', import.meta.url))), {
+  server: { host: '127.0.0.1', port: 4173, },
+  plugins: [react(), nexSpeechPlugin(fileURLToPath(new URL('.', import.meta.url))), localProjectsPlugin(fileURLToPath(new URL('.', import.meta.url))), mediapipeAssets(fileURLToPath(new URL('.', import.meta.url))), liveRelay(fileURLToPath(new URL('.', import.meta.url))), {
     name: 'sample-rig',
     resolveId(id) {
       if (id === 'virtual:sample-rig') return '\0sample-rig';
@@ -24,6 +25,6 @@ export default defineConfig({
     },
   }],
   publicDir: 'samples',
-  build: { rollupOptions: { input: { editor: 'index.html', stream: 'stream.html', live: 'live.html' } } },
+  build: { rollupOptions: { input: { editor: 'index.html', stream: 'stream.html', live: 'live.html', lipLab: 'lip-lab.html', newProject: 'novo-projeto.html', pointsEditor: 'editor-pontos.html', expressionsLab: 'laboratorio-expressoes.html', meshEditor: 'editor-malha.html' } } },
   test: { include: ['tests/**/*.test.ts', 'packages/runtime/tests/**/*.test.ts', 'packages/element/tests/**/*.test.ts', 'packages/react/tests/**/*.test.ts'] },
 });

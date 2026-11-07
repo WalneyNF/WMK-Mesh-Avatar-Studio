@@ -40,4 +40,18 @@ const zh: typeof en = {
   playbackOnly: '缺少原图：仅支持播放，无法编辑或重新生成图层。',
   playbackBadge: '仅播放', imported: '已导入：', noSourceHelp: '即使不包含原图，文件仍保留图层图像。',
 };
-export const archiveText = { en, ja, zh };
+const ptBR: typeof en = {
+  exportTitle: 'Exportar .wmk', exportButton: 'Baixar .wmk', saveExport: 'Salvar e exportar',
+  includeSource: 'Incluir imagem original', sourceHelp: 'Inclua a imagem original para editar o personagem posteriormente.',
+  savedHelp: 'Exporta rig, camadas e expressões salvas em um arquivo WMK.',
+  originalHelp: 'Exporta arquivos originais. Alterações nesta visualização somente leitura não são incluídas.',
+  saveHelp: 'Suas alterações serão salvas antes da exportação.',
+  rebuildHelp: 'Os contornos mudaram. Reconstrua as camadas antes de exportar.',
+  exportUnavailable: 'A exportação exige o servidor local ou uma pasta aberta no navegador.',
+  importTitle: 'Importar .wmk', importHelp: 'Selecione .wmk ou .mavatar (legado), ou arraste o arquivo. Um novo projeto local será criado.',
+  importUnavailable: 'A importação exige o servidor local (npm run dev).',
+  archiveFile: 'Arquivo de projeto WMK', busy: 'Processando…', failed: 'Não foi possível transferir o avatar.', dismiss: 'Fechar',
+  playbackOnly: 'Imagem original ausente: somente reprodução. Edição e reconstrução indisponíveis.',
+  playbackBadge: 'Somente reprodução', imported: 'Importado:', noSourceHelp: 'As camadas permanecem no pacote mesmo sem a imagem original.',
+};
+export const archiveText = { en, ja, zh, 'pt-BR': ptBR };

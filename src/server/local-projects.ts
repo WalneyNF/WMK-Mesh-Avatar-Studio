@@ -85,7 +85,7 @@ export function localProjectMiddleware(root: string, reveal = revealFolder, runn
     try {
       files = unpackAvatar(bytes);
       const errors = validateAvatarFiles(files);
-      if (!files['avatar.json']) errors.unshift('avatar.json: required in a .mavatar archive');
+      if (!files['avatar.json']) errors.unshift('avatar.json: required in a .wmk/.mavatar archive');
       if (errors.length) throw new Error(errors.join('\n'));
       const metadata = JSON.parse(new TextDecoder().decode(files['avatar.json']));
       const manifest = parseManifest(metadata);
@@ -218,6 +218,104 @@ export function localProjectMiddleware(root: string, reveal = revealFolder, runn
       if (parts.length === 1 && parts[0] === 'import' && req.method === 'POST') {
         if (req.headers['content-type']?.split(';')[0] !== 'application/octet-stream') throw new HttpError(400, 'Send application/octet-stream.');
         json(200, await importArchive(await readBytes(req, 128 * 1024 * 1024))); return;
+      }
+      if (parts.length === 1 && parts[0] === 'new-project' && req.method === 'POST') {
+        const name = new URL(req.url, 'http://localhost').searchParams.get('name') ?? '';
+        if (!projectName.test(name) || name.length > 64 || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(name)) throw new HttpError(400, 'Nome inválido. Use letras, números, - ou _.');
+        if (req.headers['content-type']?.split(';')[0] !== 'image/png') throw new HttpError(400, 'Envie uma imagem PNG.');
+        const bytes = await readBytes(req, 24 * 1024 * 1024);
+        if (bytes.length < 24 || !bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) throw new HttpError(400, 'PNG inválido.');
+        const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
+        if (width < 128 || height < 128 || width > 8192 || height > 8192) throw new HttpError(400, 'Imagem deve ter entre 128 e 8192 pixels em cada dimensão.');
+        await mkdir(base, { recursive: true });
+        if (await realpath(base) !== base) throw new HttpError(400, 'Project root cannot redirect elsewhere.');
+        const path = resolve(base, name);
+        if (await exists(path)) throw new HttpError(409, 'Já existe um projeto com esse nome.');
+        const temporary = resolve(base, '.wmk-upload-' + randomUUID() + '.png');
+        await writeFile(temporary, bytes, { flag: 'wx' });
+        try {
+          await new Promise<void>((done, fail) => execFile('uv', ['run', '--script', resolve(root, 'tools/new-project.py'), temporary, name], { cwd: root, timeout: 120000, windowsHide: true }, (error, stdout, stderr) => error ? fail(new HttpError(422, (stderr || error.message).slice(0, 600))) : done()));
+          json(201, { name, path, relativePath: 'projects/' + name, status: 'draft', width, height, next: 'O rascunho foi criado. Falta traçar olhos, ajustar pontos e gerar as camadas antes de abrir no editor.' });
+        } finally { await unlink(temporary).catch(() => undefined); }
+        return;
+      }
+      if (parts.length === 1 && parts[0] === 'drafts' && req.method === 'GET') {
+        const entries = await readdir(base, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => { if (error.code === 'ENOENT') return []; throw error; });
+        const names: string[] = [];
+        for (const entry of entries) {
+          if (!entry.isDirectory() || !projectName.test(entry.name)) continue;
+          const path = resolve(base, entry.name);
+          if (await exists(resolve(path, 'rig.draft.json')) && await exists(resolve(path, 'source.png'))) names.push(entry.name);
+        }
+        json(200, names); return;
+      }
+      if (parts.length === 2 && parts[0] === 'drafts' && req.method === 'GET') {
+        if (!projectName.test(parts[1])) throw new HttpError(400, 'Nome inválido');
+        const path = await folder(parts[1]);
+        const draft = await checked(path, resolve(path, 'rig.draft.json'));
+        json(200, JSON.parse(await readFile(draft, 'utf8'))); return;
+      }
+      if (parts.length === 2 && parts[0] === 'drafts' && req.method === 'POST') {
+        if (!projectName.test(parts[1])) throw new HttpError(400, 'Nome inválido');
+        const path = await folder(parts[1]);
+        const body = await readBody(req, 2 * 1024 * 1024);
+        const target = resolve(path, 'rig.draft.json');
+        if (!await exists(target)) throw new HttpError(404, 'Rascunho não encontrado');
+        const original = JSON.parse(await readFile(target, 'utf8'));
+        // Upgrade legacy drafts non-destructively: retain face.brow as compatibility data.
+        if (!original.face.browA) original.face.browA = { ...original.face.brow };
+        if (!original.face.browB) original.face.browB = { ...original.face.brow, cx: original.face.eyeB.cx };
+        if (body?.image?.width !== original.image.width || body?.image?.height !== original.image.height) throw new HttpError(400, 'Dimensões não podem ser alteradas');
+        // Draft rigs intentionally contain incomplete eye outlines and cannot pass validateRig yet.
+        // Accept only known ellipse coordinates; preserve all other draft fields from disk.
+        const editable = ['head', 'face.eyeA', 'face.eyeB', 'face.nose', 'face.mouth', 'face.browA', 'face.browB', 'face.jaw', 'face.earL', 'face.earR', 'mouth.area', 'body.chest'];
+        const at = (obj: any, path: string) => path.split('.').reduce((value, key) => value?.[key], obj);
+        for (const key of editable) {
+          const source = at(body, key), destination = at(original, key);
+          if (!source || !destination) throw new HttpError(400, 'Região ausente: ' + key);
+          for (const field of ['cx', 'cy', 'rx', 'ry']) {
+            const n = source[field];
+            const limit = field.endsWith('x') ? original.image.width : original.image.height;
+            if (typeof n !== 'number' || !Number.isFinite(n) || n < (field.startsWith('r') ? 1 : 0) || n > limit) throw new HttpError(400, 'Coordenada inválida: ' + key + '.' + field);
+            destination[field] = n;
+          }
+        }
+        const temp = resolve(path, '.rig-' + randomUUID() + '.tmp');
+        try {
+          await writeFile(temp, JSON.stringify(original, null, 2) + '\n', { flag: 'wx' });
+          await rename(temp, target);
+        } finally { await unlink(temp).catch(() => undefined); }
+        json(200, { saved: true, path: relative(root, target).split(sep).join('/') }); return;
+      }
+      if (parts.length === 2 && parts[0] === 'mouth-bridge' && req.method === 'GET') {
+        if (!projectName.test(parts[1])) throw new HttpError(400, 'Nome inválido');
+        const path = await folder(parts[1]);
+        const target = resolve(path, 'mouth.bridge.json');
+        if (!await exists(target)) { json(404, { error: 'Conversão da boca não gerada' }); return; }
+        json(200, JSON.parse(await readFile(await checked(path, target), 'utf8'))); return;
+      }
+      if (parts.length === 2 && parts[0] === 'landmarks' && (req.method === 'GET' || req.method === 'POST')) {
+        if (!projectName.test(parts[1])) throw new HttpError(400, 'Nome inválido');
+        const path = await folder(parts[1]);
+        const target = resolve(path, 'landmarks.draft.json');
+        if (req.method === 'GET') {
+          if (!await exists(target)) { json(404, { error: 'Ainda não existem pontos detalhados' }); return; }
+          json(200, JSON.parse(await readFile(await checked(path, target), 'utf8'))); return;
+        }
+        const body = await readBody(req, 1024 * 1024);
+        if (!body || body.schemaVersion !== 1 || body.project !== parts[1] || !body.regions || typeof body.regions !== 'object' || Array.isArray(body.regions)) throw new HttpError(400, 'Estrutura de pontos inválida');
+        const rig = JSON.parse(await readFile(await checked(path, resolve(path, 'rig.draft.json')), 'utf8'));
+        const allowed = new Set(['head','face_eyeA','face_eyeB','face_nose','face_mouth','face_browA','face_browB','face_jaw','face_earL','face_earR','mouth_area','body_chest']);
+        for (const [key, points] of Object.entries(body.regions)) {
+          if (!allowed.has(key) || !Array.isArray(points) || points.length < 3 || points.length > 128) throw new HttpError(400, 'Região ou quantidade de pontos inválida');
+          for (const point of points) {
+            if (!point || typeof point !== 'object' || typeof point.x !== 'number' || typeof point.y !== 'number' || !Number.isFinite(point.x) || !Number.isFinite(point.y) || point.x < 0 || point.y < 0 || point.x > rig.image.width || point.y > rig.image.height) throw new HttpError(400, 'Coordenadas inválidas');
+          }
+        }
+        const temporary = resolve(path, '.landmarks-' + randomUUID() + '.tmp');
+        try { await writeFile(temporary, JSON.stringify(body, null, 2) + '\n', { flag: 'wx' }); await rename(temporary, target); }
+        finally { await unlink(temporary).catch(() => undefined); }
+        json(200, { saved: true, file: 'landmarks.draft.json' }); return;
       }
       if (parts.length === 1 && parts[0] === 'copy-sample' && req.method === 'POST') {
         const rig = await readBody(req), errors = validateRig(rig);

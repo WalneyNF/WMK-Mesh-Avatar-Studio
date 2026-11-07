@@ -1,0 +1,7 @@
+WMK Lip Sync Studio - exemplos prontos
+Créditos: Walney Moreira Klein - walneyk@hotmail.com
+
+nex-demo-5s.wav: trecho de 5 segundos do áudio já existente no projeto.
+nex-demo-rhubarb-exemplo.json: eventos SINTÉTICOS no formato Rhubarb, NÃO extraídos por reconhecimento fonético.
+Para testar: abra /wmk-lipsync-studio.html e clique em Carregar pacote NEX (5 s).
+A imagem é carregada de projects/NEX_apresentador/source.png.

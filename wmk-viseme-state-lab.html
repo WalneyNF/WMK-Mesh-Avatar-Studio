@@ -1,0 +1,249 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WMK Viseme State Lab</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#e9f2ff;font:14px system-ui}header{padding:16px 22px;background:#172a44;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}main{max-width:1500px;margin:auto;padding:15px;display:grid;grid-template-columns:1fr 1fr;gap:14px}section{background:#17263d;border:1px solid #39536f;border-radius:10px;padding:16px;min-width:0}h2{margin:0 0 12px;font-size:18px}textarea,input,select,button{background:#253e5e;color:#fff;border:1px solid #547595;border-radius:6px;padding:9px;font:inherit}textarea{width:100%;min-height:70px;resize:vertical}button{cursor:pointer}button:hover{background:#35577c}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}.wide{grid-column:1/-1}small,.muted{color:#a9c3da}#timeline{display:flex;overflow-x:auto;gap:3px;padding:12px 0;min-height:76px}#timeline button{flex:none;min-width:45px;padding:8px 5px;text-align:center}#timeline button.active{background:#b37b35;border-color:#ffd18c}#output{width:100%;height:310px;font:12px/1.5 Consolas,monospace}#words{line-height:2.2}#words span{display:inline-block;background:#294665;margin:3px;padding:2px 8px;border-radius:5px}#state{font-size:18px;font-weight:700;color:#84dfbd}#face{width:100%;height:240px;background:#0e1b2c;border-radius:8px}#seek{width:100%}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:7px;border-bottom:1px solid #37506b;text-align:left}code{color:#9cdbf5}@media(max-width:850px){main{display:block}section{margin-bottom:12px}}</style></head><body><header><strong>🧪 WMK Viseme State Lab — Texto → Visema → Máquina de Estados</strong><span>Walney Moreira Klein — walneyk@hotmail.com</span></header><main>
+<section><h2>1. Texto e parâmetros</h2><textarea id="phrase">Olá, como está um lindo dia hoje?</textarea><div class="row"><label>ms por unidade <input id="tempo" type="number" min="80" max="900" value="240" style="width:80px"></label><label>Transição (ms) <input id="transition" type="number" min="0" max="250" value="65" style="width:75px"></label></div><div class="row"><button id="analyze">Analisar frase</button><button id="speak">🔊 Ouvir texto (voz do navegador)</button><button id="speakSync">🎙 Voz + animação (experimental)</button><button id="stopVoice">■ Parar voz</button><button id="download">⬇ Exportar JSON</button></div><p class="muted">Análise ortográfica heurística, não transcrição fonética validada. A fala do navegador é independente da timeline e não garante sincronização temporal.</p><h2>Palavras</h2><div id="words"></div><div id="voiceStatus" class="muted">Voz: inativa.</div><h2>Unidades e visemas</h2><div id="timeline"></div></section>
+<section><h2>2. Máquina de estados e rosto</h2><div id="scoreboard" style="background:#213e57;border:1px solid #6289a6;border-radius:9px;padding:12px;margin-bottom:10px"><strong>🏆 Sincronização áudio × boca — Score: <span id="score">0</span> / 100</strong><div id="scoreDetail" class="muted">Aguardando eventos temporais da voz do navegador.</div></div><div class="row"><button id="tongue">Carregar trava-língua</button><button id="recordChallenge">▶ Avaliar áudio + robô</button><button id="stopChallenge">■ Parar avaliação</button><button id="exportChallenge">⬇ Resultado JSON</button></div><div id="recognized" class="muted">Referência: eventos de palavras da síntese de voz.</div><div style="max-height:220px;overflow:auto"><table><thead><tr><th>Palavra do áudio</th><th>Palavra do robô</th><th>Visema</th><th>Estado</th><th>Diferença (ms)</th><th>Score</th></tr></thead><tbody id="comparisonRows"></tbody></table></div><canvas id="face" width="650" height="320"></canvas><div class="row"><button id="play">▶ Animar</button><button id="pause">⏸ Pausar</button><button id="reset">■ Reiniciar</button><span id="clock">0 ms</span></div><input type="range" id="seek" min="0" max="1000" value="0"><div id="state">REPOUSO</div><div id="detail" class="muted">Aguardando análise.</div><p class="muted">Estados: <code>REPOUSO → PREPARANDO → ARTICULANDO → TRANSICAO → REPOUSO</code>. A preparação antecipa o próximo movimento e a transição interpola os parâmetros faciais.</p></section>
+<section class="wide"><h2>3. JSON gerado — contrato WMK</h2><div class="row"><button id="copy">Copiar JSON</button><button id="test">Executar verificações</button><span id="result"></span></div><textarea id="output" spellcheck="false" readonly></textarea></section>
+<section class="wide"><h2>4. Referência dos formatos</h2><table><thead><tr><th>Visema</th><th>Sons aproximados</th><th>Boca</th></tr></thead><tbody><tr><td>X</td><td>Silêncio / pausa</td><td>Fechada, relaxada</td></tr><tr><td>A</td><td>M, B, P</td><td>Lábios unidos</td></tr><tr><td>B</td><td>Consoantes leves</td><td>Pequena abertura</td></tr><tr><td>C</td><td>E, I</td><td>Esticada horizontalmente</td></tr><tr><td>D</td><td>A, Á</td><td>Aberta verticalmente</td></tr><tr><td>E</td><td>O, Ó</td><td>Arredondada</td></tr><tr><td>F</td><td>U</td><td>Projeção dos lábios</td></tr><tr><td>G</td><td>F, V</td><td>Dentes superiores e lábio inferior</td></tr><tr><td>H</td><td>Outras consoantes</td><td>Intermediária</td></tr></tbody></table></section><section class="wide"><h2>5. Painel de métricas e observabilidade</h2><div id="metrics" class="row"></div><div class="row"><button id="exportLog">Exportar log JSON</button><button id="exportCsv">Exportar eventos CSV</button><button id="clearLog">Limpar log</button><span id="logStatus" class="muted">Aguardando eventos.</span></div><div style="max-height:250px;overflow:auto"><table><thead><tr><th>Tempo (ms)</th><th>Tipo</th><th>Unidade</th><th>Visema</th><th>Estado</th><th>Abertura %</th><th>Detalhe</th></tr></thead><tbody id="logRows"></tbody></table></div></section>
+<section class="wide"><h2>6. Guia articulatório: som × boca</h2><p class="muted">Exemplos ilustrativos de fonemas em português brasileiro (IPA). A correspondência com o visema é uma simplificação visual; grafia e pronúncia variam conforme palavra e sotaque.</p><div style="overflow:auto"><table><thead><tr><th>Fonema (IPA)</th><th>Exemplo</th><th>Como articular</th><th>Visema WMK</th><th>Observação</th></tr></thead><tbody id="phonemeRows"></tbody></table></div></section></main>
+<script>
+const $=id=>document.getElementById(id);
+const shapes={
+ X:{mouthOpen:0,mouthWidth:100,mouthRound:0,jawDrop:0,lipPress:0},
+ A:{mouthOpen:0,mouthWidth:94,mouthRound:0,jawDrop:0,lipPress:100},
+ B:{mouthOpen:15,mouthWidth:104,mouthRound:0,jawDrop:8,lipPress:0},
+ C:{mouthOpen:28,mouthWidth:135,mouthRound:0,jawDrop:20,lipPress:0},
+ D:{mouthOpen:85,mouthWidth:110,mouthRound:0,jawDrop:75,lipPress:0},
+ E:{mouthOpen:50,mouthWidth:75,mouthRound:75,jawDrop:40,lipPress:0},
+ F:{mouthOpen:24,mouthWidth:60,mouthRound:100,jawDrop:18,lipPress:0},
+ G:{mouthOpen:14,mouthWidth:110,mouthRound:0,jawDrop:9,lipPress:15},
+ H:{mouthOpen:32,mouthWidth:100,mouthRound:15,jawDrop:22,lipPress:0}
+};
+let logEntries=[],lastLoggedEvent=-1,lastLoggedState="",logLastMs=-1;
+let recognition=null,challengeResult=null;
+const tongueText="Num ninho de mafagafos há sete mafagafinhos. Quando a mafagafa gafa, gafam os sete mafagafinhos. Quem os desmafagafizá-los, um bom desmafagafizador será.";
+let doc=null,playing=false,playStart=0,pos=0,raf=0,voiceSession=0,voiceActive=false,voiceWord=-1,voiceStart=0,voiceBoundarySeen=false;
+const tokenize=s=>s.match(/[a-záàâãéêíóôõúüç]+|[,.!?;:]/giu)||[];
+const vowels=/[aáàâããeéêiíoóôõuúü]/i;
+function unitize(word){
+ const letters=[...word.toLowerCase().normalize('NFC')],units=[];
+ for(let i=0;i<letters.length;i++){
+  const a=letters[i],b=letters[i+1]||'',pair=a+b;
+  if(['ch','nh','lh','rr','ss','qu','gu'].includes(pair)){units.push(pair);i++;continue}
+  units.push(a);
+ }
+ return units;
+}
+function shapeOf(u){
+ if(/[,.!?;:]/.test(u))return 'X';
+ if(/^[mbp]$/.test(u))return 'A';
+ if(/^[fv]$/.test(u))return 'G';
+ if(/^[aáàâã]$/.test(u))return 'D';
+ if(/^[eéêií]$/.test(u))return 'C';
+ if(/^[oóôõ]$/.test(u))return 'E';
+ if(/^[uúü]$/.test(u))return 'F';
+ if(/^[lrnsztdcgjqx]|ch|nh|lh|rr|ss|qu|gu/.test(u))return 'H';
+ return 'B';
+}
+function build(){
+ stopSpeech();
+ const phrase=$('phrase').value.trim(),tempo=Math.max(80,Math.min(900,Number($('tempo').value)||240)),trans=Math.max(0,Math.min(250,Number($('transition').value)||0));
+ if(!phrase){$('result').textContent='Digite uma frase.';return}
+ const tokens=tokenize(phrase);let t=0;const events=[],words=[];let searchFrom=0;
+ tokens.forEach((token,wi)=>{
+  const punctuation=/^[,.!?;:]$/.test(token),units=punctuation?[token]:unitize(token),start=t;
+  units.forEach((u,ui)=>{
+   const pause=punctuation,durationMs=pause?(/^[.!?]$/.test(u)?350:180):tempo;
+   const viseme=shapeOf(u);
+   events.push({id:events.length+1,wordIndex:wi,unit:u,viseme,startMs:t,endMs:t+durationMs,durationMs,states:pause?['REPOUSO']:['PREPARANDO','ARTICULANDO','TRANSICAO'],face:{...shapes[viseme]},approximate:true});
+   t+=durationMs;
+  });
+  const charStart=phrase.toLocaleLowerCase('pt-BR').indexOf(token.toLocaleLowerCase('pt-BR'),searchFrom);words.push({text:token,startMs:start,endMs:t,units:units.length,charStart,charEnd:charStart+token.length});searchFrom=charStart+token.length;
+  if(!punctuation&&wi<tokens.length-1&&!/^[,.!?;:]$/.test(tokens[wi+1])){events.push({id:events.length+1,wordIndex:wi,unit:' ',viseme:'X',startMs:t,endMs:t+70,durationMs:70,states:['REPOUSO'],face:{...shapes.X},approximate:true});t+=70}
+ });
+ logEntries=[];lastLoggedEvent=-1;lastLoggedState='';logLastMs=-1;
+ doc={schemaVersion:'wmk-viseme-state/0.1',credits:'Walney Moreira Klein - walneyk@hotmail.com',language:'pt-BR',inputText:phrase,analysis:{method:'orthographic-heuristic',phoneticAccuracy:'not-validated',audioAligned:false,unitDurationMs:tempo,transitionMs:trans},machine:{initialState:'REPOUSO',states:['REPOUSO','PREPARANDO','ARTICULANDO','TRANSICAO'],transitions:[{from:'REPOUSO',to:'PREPARANDO',trigger:'next_unit'},{from:'PREPARANDO',to:'ARTICULANDO',trigger:'preparation_complete'},{from:'ARTICULANDO',to:'TRANSICAO',trigger:'unit_end'},{from:'TRANSICAO',to:'PREPARANDO',trigger:'next_unit'},{from:'TRANSICAO',to:'REPOUSO',trigger:'pause_or_end'}]},words,events,durationMs:t};
+ $('output').value=JSON.stringify(doc,null,2);
+ updateMetrics();addLog('ANALISE',null,'Frase analisada; tempos heurísticos');
+ $('words').replaceChildren();words.forEach(w=>{const el=document.createElement('span');el.textContent=w.text+' ('+w.units+')';$('words').append(el)});
+ $('timeline').replaceChildren();events.forEach(e=>{const b=document.createElement('button');b.textContent=e.unit===' '?'␣':e.unit+'\n'+e.viseme;b.style.whiteSpace='pre-line';b.title=e.startMs+'–'+e.endMs+' ms';b.onclick=()=>{playing=false;pos=e.startMs;draw()};b.dataset.id=e.id;$('timeline').append(b)});
+ $('seek').max=t;pos=0;playing=false;draw();$('result').textContent=events.length+' eventos gerados.';
+}
+function mix(a,b,t){const o={};for(const k of Object.keys(a))o[k]=a[k]+(b[k]-a[k])*t;return o}
+function at(ms){
+ if(!doc)return {state:'REPOUSO',shape:'X',unit:'',values:shapes.X,event:null};
+ const e=doc.events.find(x=>ms>=x.startMs&&ms<x.endMs);
+ if(!e)return {state:'REPOUSO',shape:'X',unit:'',values:shapes.X,event:null};
+ if(e.viseme==='X')return {state:'REPOUSO',shape:'X',unit:e.unit,values:shapes.X,event:e};
+ const prev=doc.events[e.id-2],next=doc.events[e.id],elapsed=ms-e.startMs,remain=e.endMs-ms,transition=doc.analysis.transitionMs;
+ let state='ARTICULANDO',values=e.face;
+ if(transition>0&&elapsed<transition){state='PREPARANDO';values=mix(prev?.face||shapes.X,e.face,elapsed/transition)}
+ else if(transition>0&&remain<transition){state='TRANSICAO';values=mix(e.face,next?.face||shapes.X,1-remain/transition)}
+ return {state,shape:e.viseme,unit:e.unit,values,event:e};
+}
+function draw(){
+ const c=$('face'),g=c.getContext('2d'),w=c.width,h=c.height,{state,shape,unit,values,event}=at(pos);
+ g.clearRect(0,0,w,h);g.fillStyle='#0e1b2c';g.fillRect(0,0,w,h);
+ g.fillStyle='#2e526e';g.fillRect(215,20,220,280);g.fillStyle='#112d45';g.fillRect(237,44,176,227);
+ g.fillStyle='#70d6f1';for(const x of [290,360]){g.beginPath();g.ellipse(x,126,15,17,0,0,Math.PI*2);g.fill()}
+ const width=38*values.mouthWidth/100,open=Math.max(2,values.mouthOpen*.48),round=values.mouthRound/100;
+ g.fillStyle='#06101c';g.beginPath();g.ellipse(325,214,width*(1-round*.32),open,0,0,Math.PI*2);g.fill();
+ g.strokeStyle='#83e7ff';g.lineWidth=5;g.stroke();
+ if(values.lipPress>50){g.strokeStyle='#8ef0ff';g.lineWidth=5;g.beginPath();g.moveTo(325-width,214);g.lineTo(325+width,214);g.stroke()}
+ g.fillStyle='#d6f6ff';g.font='18px system-ui';g.fillText('Visema '+shape,20,42);g.fillText('Unidade '+(unit||'—'),20,70);g.fillText(state,20,99);
+ $('state').textContent=state+' • '+shape;
+ $('detail').textContent='Unidade: '+(unit||'—')+' | abertura: '+values.mouthOpen.toFixed(1)+'% | largura: '+values.mouthWidth.toFixed(1)+'% | arredondamento: '+values.mouthRound.toFixed(1)+'% | mandíbula: '+values.jawDrop.toFixed(1)+'%';
+ $('clock').textContent=Math.round(pos)+' / '+(doc?.durationMs||0)+' ms';$('seek').value=pos;
+ if(doc&&(event?.id!==lastLoggedEvent||state!==lastLoggedState||pos<logLastMs-50)){
+  addLog('ESTADO', {event,unit,shape,state,values},'Atualização de estado');lastLoggedEvent=event?.id??-1;lastLoggedState=state;logLastMs=pos;
+ }
+ for(const b of $('timeline').children)b.classList.toggle('active',Number(b.dataset.id)===event?.id);
+}
+function addLog(type,detail,message){
+ const d=detail||{},row={timestamp:new Date().toISOString(),timeMs:Math.round(pos),type,unit:d.unit||'',viseme:d.shape||'',state:d.state||'',mouthOpen:d.values?Number(d.values.mouthOpen.toFixed(2)):null,message,source:'wmk-simulated',eventId:d.event?.id??null};
+ logEntries.push(row);if(logEntries.length>3000)logEntries.shift();
+ const tbody=$('logRows');if(tbody){const tr=document.createElement('tr');for(const val of [row.timeMs,row.type,row.unit,row.viseme,row.state,row.mouthOpen??'',row.message]){const td=document.createElement('td');td.textContent=String(val);tr.append(td)}tbody.prepend(tr);while(tbody.children.length>150)tbody.lastElementChild.remove()}
+ if($('logStatus'))$('logStatus').textContent=logEntries.length+' registros (até 3.000 na memória; 150 na tabela).';
+}
+function updateMetrics(){
+ if(!doc)return;
+ const es=doc.events,counts={},total=doc.durationMs,pauses=es.filter(e=>e.viseme==='X').reduce((a,e)=>a+e.durationMs,0),spoken=total-pauses;
+ for(const e of es)counts[e.viseme]=(counts[e.viseme]||0)+1;
+ const transitions=es.slice(1).filter((e,i)=>e.viseme!==es[i].viseme).length;
+ const avgOpen=spoken?es.filter(e=>e.viseme!=='X').reduce((a,e)=>a+e.face.mouthOpen*e.durationMs,0)/spoken:0;
+ const metrics={eventCount:es.length,durationMs:total,spokenMs:spoken,pauseMs:pauses,pausePercent:total?+(pauses/total*100).toFixed(2):0,transitions,transitionRatePerSecond:total?+(transitions/(total/1000)).toFixed(2):0,averageMouthOpenPercent:+avgOpen.toFixed(2),visemeCounts:counts,alignment:'not-measured',accuracy:'not-measured'};
+ doc.metrics=metrics;$('output').value=JSON.stringify(doc,null,2);
+ const host=$('metrics');host.replaceChildren();
+ for(const [label,value] of [['Eventos',metrics.eventCount],['Duração',total+' ms'],['Pausas',metrics.pausePercent+'%'],['Transições',transitions],['Transições/s',metrics.transitionRatePerSecond],['Abertura média',metrics.averageMouthOpenPercent+'%']]){
+  const item=document.createElement('div');item.style.cssText='background:#253e5e;border:1px solid #52708d;border-radius:7px;padding:12px;min-width:140px';const strong=document.createElement('strong');strong.textContent=String(value);const title=document.createElement('div');title.textContent=label;title.className='muted';item.append(title,strong);host.append(item)
+ }
+}
+function downloadText(filename,text,mime){const url=URL.createObjectURL(new Blob([text],{type:mime})),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('exportLog').onclick=()=>downloadText('wmk-viseme-log.json',JSON.stringify({schemaVersion:'wmk-viseme-log/0.1',credits:'Walney Moreira Klein - walneyk@hotmail.com',analysis:doc?.analysis||null,metrics:doc?.metrics||null,entries:logEntries},null,2),'application/json');
+$('exportCsv').onclick=()=>{
+ if(!doc)return;
+ const headers=['id','unit','viseme','startMs','endMs','durationMs','mouthOpen','mouthWidth','mouthRound','jawDrop','lipPress','approximate'];
+ const rows=[headers.join(';'),...doc.events.map(e=>[e.id,e.unit,e.viseme,e.startMs,e.endMs,e.durationMs,e.face.mouthOpen,e.face.mouthWidth,e.face.mouthRound,e.face.jawDrop,e.face.lipPress,e.approximate].map(x=>'"'+String(x).replaceAll('"','""')+'"').join(';'))];
+ downloadText('wmk-viseme-events.csv','\uFEFF'+rows.join('\r\n'),'text/csv;charset=utf-8')
+};
+$('clearLog').onclick=()=>{logEntries=[];$('logRows').replaceChildren();lastLoggedEvent=-1;lastLoggedState='';$('logStatus').textContent='Log limpo.'};
+const phonemeGuide=[
+ ['/p/','pato','Fechar os dois lábios e soltar o ar','A','Oclusiva bilabial surda'],
+ ['/b/','bola','Fechar os dois lábios e soltar com voz','A','Oclusiva bilabial sonora'],
+ ['/m/','mamãe','Fechar os lábios; som nasal','A','Nasal bilabial'],
+ ['/f/','faca','Dentes superiores próximos ao lábio inferior; ar contínuo','G','Fricativa labiodental surda'],
+ ['/v/','vaca','Como /f/, mas com vibração vocal','G','Fricativa labiodental sonora'],
+ ['/a/','pá','Abrir a mandíbula; língua baixa','D','Vogal aberta'],
+ ['/i/','vida','Lábios esticados; língua alta à frente','C','Vogal anterior fechada'],
+ ['/u/','uva','Arredondar os lábios; língua alta atrás','F','Vogal posterior fechada'],
+ ['/ɛ/','pé','Abrir a boca moderadamente; língua anterior','C','Vogal anterior aberta'],
+ ['/ɔ/','pó','Arredondar os lábios e abrir mais a mandíbula','E','Vogal posterior aberta'],
+ ['/s/','sapo','Língua próxima aos alvéolos; dentes próximos','H','A língua é mais importante que o formato externo'],
+ ['/ʃ/','chá','Língua elevada; lábios podem projetar-se','H','Pronúncia varia com o contexto'],
+ ['/t/','tatu','Ponta/lâmina da língua perto dos dentes superiores','H','A articulação não é totalmente visível'],
+ ['/l/','lua','Ponta da língua toca a região alveolar','H','A articulação não é totalmente visível'],
+ ['/ɲ/','ninho','Língua contra o palato; ar pelo nariz','H','A articulação não é totalmente visível']
+];
+for(const row of phonemeGuide){const tr=document.createElement('tr');for(const value of row){const td=document.createElement('td');td.textContent=value;tr.append(td)}$('phonemeRows').append(tr)}
+let alignmentSamples=[],evaluateMode=false,alignmentAnchors=[],evalVoiceStart=0;
+function resetEvaluation(){
+ alignmentSamples=[];alignmentAnchors=[];challengeResult=null;$('comparisonRows').replaceChildren();
+ $('score').textContent='—';$('scoreDetail').textContent='Aguardando eventos de início das palavras no áudio.';
+ $('recognized').textContent='O score depende dos eventos onboundary da voz; sem eles, fica indisponível.';
+}
+function addAlignmentSample(charIndex,audioTime){
+ if(!doc)return;
+ const wi=doc.words.findIndex(w=>charIndex>=w.charStart&&charIndex<w.charEnd);
+ if(wi<0||/^[,.!?;:]$/.test(doc.words[wi].text))return;
+ const expected=doc.words[wi],robot=doc.words.find(w=>pos>=w.startMs&&pos<w.endMs)||null;
+ const current=at(pos),delta=Math.round(pos-expected.startMs);
+ // Janela de tolerância configurável: 120ms. Não é avaliação fonética.
+ const toleranceMs=120,correctWord=robot===expected;
+ const timingScore=Math.max(0,Math.round(100*Math.max(0,1-Math.abs(delta)/400)));
+ const stateValid=current.state!=='REPOUSO'&&current.event?.viseme!=='X';
+ const score=Math.round((correctWord?50:0)+(stateValid?20:0)+timingScore*.30);
+ const sample={wordIndex:wi,audioWord:expected.text,robotWord:robot?.text||'—',audioElapsedMs:Math.round(audioTime),robotTimeMs:Math.round(pos),expectedTimelineMs:expected.startMs,offsetMs:delta,viseme:current.shape,state:current.state,correctWord,stateValid,score,withinTolerance:Math.abs(delta)<=toleranceMs,alignmentType:'baseline-independent-timeline'};
+ alignmentSamples.push(sample);
+ const tr=document.createElement('tr');
+ for(const value of [sample.audioWord,sample.robotWord,sample.viseme,sample.state,sample.offsetMs,sample.score+'/100']){const td=document.createElement('td');td.textContent=String(value);tr.append(td)}
+ $('comparisonRows').append(tr);
+ const avg=Math.round(alignmentSamples.reduce((sum,x)=>sum+x.score,0)/alignmentSamples.length);
+ $('score').textContent=avg;
+ $('scoreDetail').textContent=alignmentSamples.length+' palavras avaliadas; '+alignmentSamples.filter(x=>x.withinTolerance).length+' dentro de ±120 ms. Score experimental.';
+ $('recognized').textContent='Áudio: '+expected.text+' | robô: '+sample.robotWord+' | visema: '+sample.viseme+' | estado: '+sample.state;
+ addLog('COMPARACAO',current,'Áudio '+expected.text+' × robô '+sample.robotWord+'; delta='+delta+'ms; score='+score);
+ challengeResult={schemaVersion:'wmk-audio-robot-alignment/0.2',credits:'Walney Moreira Klein - walneyk@hotmail.com',reference:doc.inputText,source:'browser-speechSynthesis-onboundary',metric:'word-onset-offset-vs-independent-robot-timeline',toleranceMs,score:avg,wordSamples:alignmentSamples,anchors:alignmentAnchors,limitations:'Mede concordância temporal aproximada e estado visual, não fonemas nem precisão acústica. Eventos de fronteira dependem do navegador.'};
+}
+$('tongue').onclick=()=>{$('phrase').value=tongueText;build();resetEvaluation()};
+$('recordChallenge').onclick=()=>{resetEvaluation();evaluateMode=true;startSpeech(true)};
+$('stopChallenge').onclick=()=>{evaluateMode=false;stopSpeech();playing=false;cancelAnimationFrame(raf)};
+$('exportChallenge').onclick=()=>{if(!challengeResult){$('recognized').textContent='Sem eventos temporais para exportar. Execute a avaliação.';return}downloadText('wmk-audio-robo-alinhamento.json',JSON.stringify(challengeResult,null,2),'application/json')};
+function stopSpeech(){voiceSession++;voiceActive=false;voiceWord=-1;voiceBoundarySeen=false;if('speechSynthesis' in window)speechSynthesis.cancel();$('voiceStatus').textContent='Voz: inativa.'}
+function frame(now){if(!playing)return;pos=Math.min(doc.durationMs,now-playStart);draw();if(pos>=doc.durationMs){playing=false;return}raf=requestAnimationFrame(frame)}
+$('analyze').onclick=build;
+$('play').onclick=()=>{if(!doc)build();if(!doc)return;if(pos>=doc.durationMs)pos=0;playing=true;playStart=performance.now()-pos;cancelAnimationFrame(raf);raf=requestAnimationFrame(frame)};
+$('pause').onclick=()=>{playing=false;cancelAnimationFrame(raf)};
+$('reset').onclick=()=>{playing=false;cancelAnimationFrame(raf);pos=0;draw()};
+$('seek').oninput=e=>{playing=false;cancelAnimationFrame(raf);pos=Number(e.target.value);draw()};
+$('speak').onclick=()=>startSpeech(false);
+$('speakSync').onclick=()=>startSpeech(true);
+$('stopVoice').onclick=()=>{stopSpeech();playing=false;cancelAnimationFrame(raf)};
+function startSpeech(sync){
+ if(!('speechSynthesis' in window)){$('result').textContent='Voz não disponível neste navegador.';return}
+ if(!doc||doc.inputText!==$('phrase').value.trim())build();
+ if(!doc)return;
+ stopSpeech();playing=false;cancelAnimationFrame(raf);
+ const session=voiceSession,utter=new SpeechSynthesisUtterance(doc.inputText);utter.lang='pt-BR';
+ let speechStarted=false,lastBoundaryAt=0,anchorMs=0,anchorClock=0,estimatedDuration=doc.durationMs;
+ utter.onstart=()=>{
+  if(session!==voiceSession)return;
+  voiceActive=true;speechStarted=true;voiceStart=performance.now();evalVoiceStart=voiceStart;anchorClock=voiceStart;
+  voiceBoundarySeen=false;pos=0;draw();
+  $('voiceStatus').textContent=sync?'Voz ativa — animação temporal aproximada; aguardando marcações de palavras.':'Voz ativa (sem sincronização).';
+ };
+ utter.onboundary=e=>{
+  if(session!==voiceSession||!sync)return;
+  const char=Number(e.charIndex);if(!Number.isFinite(char))return;
+  let wi=doc.words.findIndex(w=>char>=w.charStart&&char<w.charEnd);
+  if(wi<0)wi=doc.words.findIndex(w=>w.charStart>=char);
+  if(wi<0)return;
+  voiceBoundarySeen=true;voiceWord=wi;lastBoundaryAt=performance.now();
+  if(evaluateMode){addAlignmentSample(char,performance.now()-voiceStart);alignmentAnchors.push({wordIndex:wi,word:doc.words[wi].text,audioMs:Math.round(performance.now()-voiceStart),timelineMs:doc.words[wi].startMs});}
+  const word=doc.words[wi];anchorMs=word.startMs;anchorClock=lastBoundaryAt;if(!evaluateMode){pos=anchorMs;draw();}
+  $('voiceStatus').textContent='Voz ativa — palavra: '+word.text+'; alinhamento aproximado por eventos do navegador.';
+ };
+ utter.onerror=e=>{
+  if(session!==voiceSession)return;
+  voiceActive=false;evaluateMode=false;cancelAnimationFrame(raf);$('voiceStatus').textContent='Erro de síntese: '+(e.error||'desconhecido');
+ };
+ utter.onend=()=>{
+  if(session!==voiceSession)return;
+  voiceActive=false;cancelAnimationFrame(raf);pos=doc.durationMs;draw();
+  if(evaluateMode&&alignmentSamples.length){$('scoreDetail').textContent+=' | Diagnóstico: timeline fixa não acompanha a velocidade da voz. Os marcos de áudio foram registrados no JSON.';}
+  if(evaluateMode&&!alignmentSamples.length){$('scoreDetail').textContent='Sem marcações de palavras: score indisponível; use áudio com alinhamento externo para medir.'}evaluateMode=false;
+  $('voiceStatus').textContent=sync?(voiceBoundarySeen?'Voz concluída; eventos de palavras utilizados.':'Voz concluída; animação temporal estimada (sem eventos de palavras).'):'Voz concluída.';
+ };
+ if(sync){
+  const follow=now=>{
+   if(session!==voiceSession)return;
+   if(speechStarted&&voiceActive){
+    if(evaluateMode){pos=Math.min(doc.durationMs-1,Math.max(0,now-voiceStart));}
+    else if(voiceBoundarySeen){
+     // Usa a última palavra como âncora e avança no intervalo, sem congelar entre eventos.
+     pos=Math.min(doc.durationMs,anchorMs+Math.max(0,now-anchorClock));
+    }else{
+     // Fallback: anima mesmo quando a voz não fornece onboundary.
+     pos=Math.min(doc.durationMs-1,Math.max(0,now-voiceStart));
+    }
+    draw();
+   }
+   if(!speechStarted||voiceActive)raf=requestAnimationFrame(follow);
+  };
+  raf=requestAnimationFrame(follow);
+ }
+ speechSynthesis.speak(utter);
+}
+$('copy').onclick=()=>{if(!doc)build();if(doc)navigator.clipboard.writeText($('output').value).then(()=>$('result').textContent='JSON copiado.').catch(()=>$('result').textContent='Cópia indisponível; selecione o JSON manualmente.')};
+$('download').onclick=()=>{if(!doc)build();if(!doc)return;const url=URL.createObjectURL(new Blob([$('output').value],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='wmk-viseme-state.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('test').onclick=()=>{if(!doc)build();if(!doc)return;const es=doc.events;const ok=es.every((e,i)=>e.endMs>e.startMs&&e.durationMs===e.endMs-e.startMs&&(!i||e.startMs===es[i-1].endMs)&&shapes[e.viseme])&&es.at(-1).endMs===doc.durationMs&&doc.machine.states.length===4;$('result').textContent=ok?'✓ Verificações aprovadas':'✗ Falha na consistência dos eventos'};
+build();
+</script></body></html>

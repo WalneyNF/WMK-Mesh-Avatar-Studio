@@ -43,7 +43,7 @@ function Workspace() {
   const pickedFiles = useRef<File[] | undefined>(undefined);
   const [archiveBusy, setArchiveBusy] = useState(false);
   const [archiveFeedback, setArchiveFeedback] = useState<{ error?: string; name?: string } | null>(null);
-  const sharing = archiveText[language];
+  const sharing = archiveText[language === 'pt-BR' ? 'en' : language];
   const [builtSignature, setBuiltSignature] = useState(() => layerSignature(history.present));
   const fileInput = useRef<HTMLInputElement>(null);
   const folderInput = useRef<HTMLInputElement>(null);
@@ -414,15 +414,15 @@ function Workspace() {
       const name = localProject?.name ?? (pickedName || 'sample-miko-qipao');
       const blob = await exportAvatar(name, includeSource, pickedFiles.current, lipSync);
       const url = URL.createObjectURL(blob), link = document.createElement('a');
-      link.href = url; link.download = `${name}.mavatar`; link.click();
+      link.href = url; link.download = `${name}.wmk`; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) { setArchiveFeedback({ error: error instanceof Error ? error.message : sharing.failed }); throw error; }
     finally { jobRef.current = null; setArchiveBusy(false); }
   };
   const importControl = <ImportAvatar busy={busy || saving} available={!!rootPath} onImport={file => { void importFile(file); }} />;
-  return <main onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file?.name.toLowerCase().endsWith('.mavatar')) void importFile(file); else void openFile(file); }}>
+  return <main onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (/\.(wmk|mavatar)$/i.test(file?.name ?? '')) void importFile(file); else void openFile(file); }}>
     <header className="toolbar">
-      <div className="brand"><h1>{t.product}</h1><p>{t.subtitle}</p></div>
+      <div className="brand wmk-brand"><img className="wmk-logo" src="/wmk-avatar-logo.png" alt="Logo WMK" width={36} height={36} /><div><h1>WMK Mesh Avatar Studio</h1><p>{t.subtitle}</p><small className="wmk-credits">Walney Moreira Klein — walneyk@hotmail.com</small></div></div>
       <nav aria-label={t.tools}>
         <input ref={fileInput} type="file" accept=".json,application/json" hidden aria-label={t.rigFile}
           onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }} />
@@ -456,20 +456,23 @@ function Workspace() {
             <button onClick={() => { void chooseFile(true); }}>{t.openFolder}</button><button disabled={playbackOnly} onClick={() => { void chooseFile(false); }}>{t.openRig}</button>
           </div>
         </details>
+        <a className="live-link" href="/editor-pontos.html" title="Editar pontos do rig em um projeto existente">✥ Editor de Pontos</a>\n        <a className="live-link" href="/novo-projeto.html" title="Criar personagem a partir de um PNG">＋ Novo projeto</a>
         <ExportAvatar busy={busy || saving} available={!!rootPath || !!pickedFiles.current} writable={writable} dirty={dirty} stale={changed.length > 0} onExport={exportFile} />
         <button className="icon-button" aria-label={t.save} disabled={saving || busy || playbackOnly} title={`${t.save} · ⌘S`} onClick={() => { void save(); }}><Icon name="save" /></button>
         <span className="toolbar-divider" />
         <button className="icon-button" aria-label={t.undo} title={`${t.undo} · ⌘Z`} disabled={!history.canUndo || busy || playbackOnly} onClick={() => setRig(history.undo())}><Icon name="undo" /></button>
         <button className="icon-button" aria-label={t.redo} title={`${t.redo} · ⇧⌘Z`} disabled={!history.canRedo || busy || playbackOnly} onClick={() => setRig(history.redo())}><Icon name="redo" /></button>
         <span className="toolbar-divider" />
+        <a className="live-link" href="/lip-lab.html" target="_blank" rel="noreferrer" title="Laboratório dedicado de áudio e visemas">🎙 Laboratório Labial</a>
         <a className="live-link" href={localProject || listedProject || !pickedName ? `/live.html?project=${encodeURIComponent(localProject?.name ?? listedProject?.name ?? 'sample-miko-qipao')}` : undefined}
           target="_blank" rel="noreferrer" aria-disabled={!!pickedName && !localProject && !listedProject}
-          title={pickedName && !localProject && !listedProject ? liveText[language].liveUnavailable : liveText[language].title}><Icon name="live" />{liveText[language].title}</a>
+          title={pickedName && !localProject && !listedProject ? liveText[language === 'pt-BR' ? 'en' : language].liveUnavailable : liveText[language === 'pt-BR' ? 'en' : language].title}><Icon name="live" />{liveText[language === 'pt-BR' ? 'en' : language].title}</a>
         <button className="icon-button" aria-label={t.help} title={t.help} aria-expanded={help} onClick={() => setHelp(current => !current)}><Icon name="help" /></button>
         <div className="language-toggle" role="group" aria-label={t.language}>
           <button aria-label={t.english} aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>{t.enCode}</button>
           <button aria-label={t.japanese} aria-pressed={language === 'ja'} onClick={() => setLanguage('ja')}>{t.jaCode}</button>
           <button aria-label={t.chinese} aria-pressed={language === 'zh'} onClick={() => setLanguage('zh')}>{t.zhCode}</button>
+          <button aria-label="Português brasileiro" aria-pressed={language === 'pt-BR'} onClick={() => setLanguage('pt-BR')}>PT-BR</button>
         </div>
       </nav>
     </header>

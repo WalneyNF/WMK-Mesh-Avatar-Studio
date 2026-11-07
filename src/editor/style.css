@@ -1,6 +1,6 @@
 :root {
-  --ink: #243348; --muted: #64758a; --canvas: #edf1f5; --surface: #fff;
-  --line: #d7dfe8; --accent: #2563eb; --accent-soft: #edf3ff;
+  --ink: #eaf5ff; --muted: #a8b6d9; --canvas: #080d20; --surface: #17213c;
+  --line: #36456b; --accent: #22d9ff; --accent-soft: #202b53;
   --radius: 12px; --space: 8px;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 13px; color: var(--ink); background: var(--canvas); font-synthesis: none;
@@ -315,3 +315,21 @@ main:has(.stale) .editor-panel, main:has(.stale) .parts-panel { height: calc(100
 .full-body-support dd { margin: 3px 0 0; font-weight: 500; }
 .full-body-support [data-state="set"] dd { color: #187747; }
 .full-body-support p { margin: 7px 0 0; line-height: 1.5; color: var(--muted); }
+
+/* WMK brand theme — accents derived from the approved avatar logo */
+:root { color-scheme: dark; --wmk-bg:#080d20; --wmk-panel:#17213c; --wmk-cyan:#22d9ff; --wmk-violet:#7761ff; --wmk-pink:#f15bef; --wmk-text:#eaf5ff; }
+body { background: radial-gradient(ellipse at 15% 0%, #202052 0%, #080d20 55%) fixed; color:var(--ink); }
+.brand h1, .toolbar h1 { color:#eaf5ff; text-shadow:0 0 18px #7761ff66; }
+button.primary, .live-link { background:linear-gradient(115deg,#136fbb,#6351d7); border-color:#22d9ff; color:#fff; }
+button.primary:hover { background:linear-gradient(115deg,#1887d7,#8c5bea); }
+.project-menu,.archive-options,.archive-feedback,.rename-project,.project-list button { background:#17213c; color:#eaf5ff; border-color:#36456b; }
+input,select,textarea { color:#eaf5ff; background:#111b33; border-color:#36456b; }
+a { color:#67dfff; }
+.language-toggle button[aria-pressed="true"] { background:#26355f; color:#22d9ff; }
+:focus-visible { outline-color:#f15bef; }
+
+/* WMK logo and author credits */
+.wmk-brand,.wmk-live-brand{display:flex;align-items:center;gap:12px;min-width:0}.wmk-logo{width:58px;height:48px;object-fit:contain;flex:none;filter:drop-shadow(0 0 9px #22d9ff55)}.wmk-credits{display:block;font-size:11px;line-height:1.3;color:#a8b6d9;margin-top:2px}.wmk-brand h1,.wmk-live-brand h1{margin:0}.wmk-brand p{margin:0}@media(max-width:680px){.wmk-logo{width:38px;height:34px}.wmk-credits{font-size:9px}}
+
+/* WMK header: small visible logo to the left of the product name */
+.toolbar .brand.wmk-brand{display:flex;flex-direction:row;align-items:center;gap:8px}.toolbar .brand.wmk-brand>img.wmk-logo{display:block!important;width:36px!important;height:36px!important;max-width:36px;object-fit:contain;flex:0 0 36px}.toolbar .brand.wmk-brand>div{min-width:0}

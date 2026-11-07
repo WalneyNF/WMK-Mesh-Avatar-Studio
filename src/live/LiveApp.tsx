@@ -139,12 +139,12 @@ export function LiveApp() {
   const missing = support ? [...(!support.legs ? [t.legs] : []), ...(!support.arms ? [t.arms] : [])] : [];
   const status = cameraState === 'running' ? tracking ? 'tracking' : 'lost' : cameraState;
   return <main className="live-app">
-    <header className="live-header"><div><a href="/">{t.back}</a><h1>Mesh Avatar Studio <span>{t.title}</span></h1></div>
-      <div className="live-languages">{(['en', 'ja', 'zh'] as const).map(lang => <button key={lang} aria-pressed={language === lang} onClick={() => setLanguage(lang)}>{({ en: 'English', ja: '日本語', zh: '简体中文' })[lang]}</button>)}</div>
+    <header className="live-header"><div><a href="/">{t.back}</a><div className="wmk-live-brand"><img className="wmk-logo" src="/wmk-avatar-logo.png" alt="Logo WMK" onError={event => { event.currentTarget.style.display = "none"; }} /><div><h1>WMK Mesh Avatar Studio <span>{t.title}</span></h1><small className="wmk-credits">Walney Moreira Klein — walneyk@hotmail.com</small></div></div></div>
+      <div className="live-languages">{(['en', 'ja', 'zh', 'pt-BR'] as const).map(lang => <button key={lang} aria-pressed={language === lang} onClick={() => setLanguage(lang)}>{({ en: 'English', ja: '日本語', zh: '简体中文', 'pt-BR': 'Português' })[lang]}</button>)}</div>
     </header>
     <div className="live-layout"><section className="live-view"><div className="live-preview checkerboard lighting-preview" style={{ backgroundColor: settings.background, backgroundImage: settings.background === 'transparent' ? undefined : 'none' }}>
       <canvas ref={canvas} data-testid="live-avatar" />
-      {lightingOpen && <LightHandle value={settings.lighting} onChange={changeLighting} language={language} />}
+      {lightingOpen && <LightHandle value={settings.lighting} onChange={changeLighting} language={language === 'pt-BR' ? 'en' : language} />}
     </div><p role="status" className={viewState === 'projectError' ? 'live-error' : ''}>{t[viewState]} · {settings.project}</p></section>
     <aside className="live-controls">
       {duplicatePage && <p role="alert" className="live-warning" data-testid="duplicate-live-page">{t.duplicatePage}</p>}
@@ -169,7 +169,7 @@ export function LiveApp() {
         <label className="live-check"><input type="checkbox" checked={showCamera} onChange={event => setShowCamera(event.target.checked)} />{t.cameraPreview}</label>
         <video ref={video} autoPlay muted playsInline className={showCamera ? 'camera-preview' : 'camera-preview camera-hidden'} style={{ transform: options.mirror ? 'scaleX(-1)' : undefined }} aria-label={t.cameraPreview} />
       </section>
-      <MicrophoneControls language={language} ready={viewState === 'ready'} devices={devices} state={micState}
+      <MicrophoneControls language={language === 'pt-BR' ? 'en' : language} ready={viewState === 'ready'} devices={devices} state={micState}
         gain={gain} onGainChange={setGain} onStart={id => void microphone.current?.start(id).then(refreshDevices)}
         onStop={() => microphone.current?.stop()} />
       <section><h2>{t.background}</h2><select aria-label={t.background} value={settings.background} onChange={event => setSettings(current => ({ ...current, background: backgroundColor(event.target.value) }))}>
@@ -202,7 +202,7 @@ export function LiveApp() {
         </div><small>{t.overlaysHint}</small>
       </details>}
       <details className="live-lighting" data-testid="lighting-section" onToggle={event => setLightingOpen(event.currentTarget.open)}>
-        <summary><Icon name="light" />{lightingText[language].title}{settings.lighting.enabled && <span className="lighting-on">ON</span>}</summary>
+        <summary><Icon name="light" />{lightingText[language === 'pt-BR' ? 'en' : language].title}{settings.lighting.enabled && <span className="lighting-on">ON</span>}</summary>
         <div className="lighting-presets"><h3>{t.presets}</h3>
           <div className="preset-slots" role="group" aria-label={t.presets}>
             {presets.map((value, i) => <div className="preset-slot" key={i}>
@@ -214,7 +214,7 @@ export function LiveApp() {
           </div><small>{t.presetHint}</small>
           {remote && <label>{t.presetUrl}<span className="remote-field"><input readOnly value={`${location.origin}${LIGHTING_PRESET_PATH}`} onFocus={event => event.target.select()} /></span></label>}
         </div>
-        <LightingControls value={settings.lighting} onChange={changeLighting} language={language} />
+        <LightingControls value={settings.lighting} onChange={changeLighting} language={language === 'pt-BR' ? 'en' : language} />
       </details>
       <p className="live-privacy">{t.privacy}</p>
     </aside></div>

@@ -85,3 +85,18 @@ input[type="color"] { width: 100%; height: 32px; border: 0; padding: 0; }
 
 .live-body-support { margin: -4px 0 8px; padding: 8px 10px; border-left: 3px solid #c4d7ee; background: #f3f7fc; border-radius: 0 5px 5px 0; }
 .live-body-support small + small { margin-top: 4px; }
+
+/* WMK avatar brand */
+:root {color-scheme:dark;color:#eaf5ff;background:#080d20;--wmk-cyan:#22d9ff;--wmk-violet:#7761ff;--wmk-pink:#f15bef}
+body {background:radial-gradient(ellipse at top,#202052,#080d20 65%);color:#eaf5ff}
+.live-controls section {background:#17213c;border-color:#36456b}
+button,select,input,.obs-url {background:#111b33;color:#eaf5ff;border-color:#36456b}
+button[aria-pressed="true"] {color:#22d9ff;background:#26355f}
+.live-primary {background:linear-gradient(115deg,#136fbb,#6351d7);color:#fff;border-color:#22d9ff}
+.live-open {border-color:#22d9ff;color:#22d9ff}
+a {color:#67dfff} small,.live-privacy,h1 span {color:#a8b6d9}
+input[type="range"] {accent-color:#7761ff}
+.live-preview {border-color:#36456b}
+
+/* WMK logo and author credits */
+.wmk-brand,.wmk-live-brand{display:flex;align-items:center;gap:12px;min-width:0}.wmk-logo{width:58px;height:48px;object-fit:contain;flex:none;filter:drop-shadow(0 0 9px #22d9ff55)}.wmk-credits{display:block;font-size:11px;line-height:1.3;color:#a8b6d9;margin-top:2px}.wmk-brand h1,.wmk-live-brand h1{margin:0}.wmk-brand p{margin:0}@media(max-width:680px){.wmk-logo{width:38px;height:34px}.wmk-credits{font-size:9px}}

@@ -1,0 +1,42 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="author" content="Walney Moreira Klein — walneyk@hotmail.com"><title>Manual técnico — Motor de voz e visemas | WMK</title><style>body{margin:0;background:#0d1430;color:#e7efff;font:16px/1.7 system-ui,Segoe UI,sans-serif}header{background:#182345;border-bottom:1px solid #40557c;padding:18px max(20px,calc((100vw - 1040px)/2));display:flex;gap:15px;align-items:center}header img{width:58px;height:58px;object-fit:contain}h1{margin:0;font-size:26px}small,.muted{color:#aabbd8}nav{background:#111d3b;padding:12px;text-align:center}nav a{display:inline-block;margin:4px 9px}a{color:#55ddfa}main{max-width:1000px;margin:auto;padding:22px}h2{color:#5fe1ff;margin-top:32px}h3{color:#d7a7ff}section{background:#172341;border:1px solid #33476f;padding:20px;border-radius:12px;margin:20px 0}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #3c5276;text-align:left;vertical-align:top}th{background:#263b62}code,pre{background:#081226;color:#b3f3ff;padding:3px 6px;border-radius:4px}pre{padding:14px;overflow:auto}li{margin:8px 0}footer{text-align:center;padding:25px;color:#aabbd8}blockquote{border-left:3px solid #39d7e9;padding-left:16px}</style></head><body><header><img src="../samples/wmk-avatar-logo.png" alt="Logo WMK"><div><h1>Manual técnico — Motor de voz e visemas</h1><small>WMK Mesh Avatar Studio · Walney Moreira Klein — walneyk@hotmail.com</small></div></header><nav><a href="index.html">Central</a><a href="labial-usuario.html">Guia do usuário</a><a href="labial-desenvolvedor.html">Guia técnico</a><a href="video-studio-roadmap.html">Vídeos e evolução</a><a href="../lip-lab.html">Abrir laboratório</a></nav><main>
+<section><h2>1. Arquitetura atual verificada</h2><table><tr><th>Arquivo</th><th>Responsabilidade</th></tr><tr><td><code>lip-lab.html</code></td><td>Interface isolada do laboratório</td></tr><tr><td><code>src/lip-lab/main.ts</code></td><td>Importação, análise RMS, canvas de onda, timeline, importação/exportação JSON</td></tr><tr><td><code>src/editor/LipSyncSettings.tsx</code></td><td>Controles legados de áudio no editor</td></tr><tr><td><code>src/live/LiveApp.tsx</code></td><td>Interface de webcam, microfone e transmissão</td></tr><tr><td><code>vite.config.ts</code></td><td>Entrada de build do laboratório e publicDir definido como samples</td></tr><tr><td><code>samples/wmk-teste-labial.wav</code></td><td>Áudio local de testes PT-BR</td></tr></table><p>Não presumir que a timeline já controla a malha facial. O laboratório é um protótipo independente.</p></section>
+<section><h2>2. Conceitos técnicos</h2><p><strong>RMS:</strong> raiz da média dos quadrados das amostras, mede energia do sinal: <code>sqrt(sum(x²)/N)</code>. É útil para silêncio/volume, não para identificar fonemas.</p><p><strong>Fonema:</strong> unidade sonora distintiva. <strong>Visema:</strong> forma visual associada a um ou vários fonemas. <strong>Coarticulação:</strong> uma forma começa a se transformar antes de o som seguinte começar.</p><p><strong>Alinhamento temporal:</strong> atribuir intervalos aos sons da fala. Transcrição de palavras não equivale a alinhamento fonético.</p></section>
+<section><h2>3. Formato JSON experimental</h2><pre>{
+  "schemaVersion": 1,
+  "application": "WMK Lip Lab",
+  "audio": "fala.wav",
+  "duration": 3.2,
+  "marks": [
+    {"time": 0.00, "viseme": "repouso"},
+    {"time": 0.25, "viseme": "M/B/P"},
+    {"time": 0.40, "viseme": "A"},
+    {"time": 0.80, "viseme": "repouso"}
+  ]
+}</pre><p>Os tempos são ilustrativos, não são resultados de reconhecimento automático. Ao importar, validar schema, tempos finitos e não negativos, lista de visemas permitidos e tamanho máximo do arquivo.</p></section>
+<section><h2>4. Pipeline recomendado</h2><pre>AudioFile / Microphone
+  -> Decoder / AudioWorklet
+  -> RMS / VAD (detecção de voz)
+  -> [offline: alinhamento fonético / Rhubarb / revisão humana]
+  -> VisemeTimeline
+  -> Interpolator (coarticulação, easing, duração)
+  -> RigAdapter (pesos e deformações da malha da boca)
+  -> Renderer / Live / Recorder</pre><p>O <strong>RigAdapter</strong> deve receber pesos normalizados e não conhecer DOM, áudio ou provedor de IA. Isso evita acoplamento entre análise e renderização.</p></section>
+<section><h2>5. Interfaces TypeScript propostas</h2><pre>type Viseme = 'rest'|'A'|'E'|'I'|'O'|'U'|'MBP'|'FV';
+interface VisemeCue {
+  startMs: number;
+  endMs: number;
+  viseme: Viseme;
+  confidence?: number;
+}
+interface MouthRigAdapter {
+  apply(weights: Partial&lt;Record&lt;Viseme, number&gt;&gt;): void;
+  reset(): void;
+}
+interface LipSyncProvider {
+  analyze(audio: ArrayBuffer, transcript?: string): Promise&lt;VisemeCue[]&gt;;
+}</pre><p>Essas interfaces são <strong>propostas</strong>, não arquivos existentes. Separar modo offline de modo Live e aplicar limites de latência e descarte de quadros antigos.</p></section>
+<section><h2>6. Estratégias de sincronização</h2><table><tr><th>Método</th><th>Prós</th><th>Limites</th></tr><tr><td>RMS</td><td>Rápido, local, baixa latência</td><td>Não identifica fonemas</td></tr><tr><td>Timeline manual</td><td>Controle artístico e previsível</td><td>Trabalho humano</td></tr><tr><td>Rhubarb Lip Sync</td><td>Gera cues offline em JSON</td><td>Precisão variável; reconhecimento padrão em inglês; modo fonético para outros idiomas</td></tr><tr><td>STT + alinhamento</td><td>Palavras e tempos auxiliam automação</td><td>Exige converter para fonemas/visemas e revisar</td></tr><tr><td>Modelo fonético especializado</td><td>Potencial de precisão maior</td><td>Complexidade, dependências e testes</td></tr></table><p>Referência: <a href="https://github.com/DanielSWolf/rhubarb-lip-sync">Rhubarb Lip Sync</a>.</p></section>
+<section><h2>7. Captura de vídeo no navegador</h2><p>Para vídeo do avatar: <code>canvas.captureStream(30)</code>. Para áudio: <code>AudioContext.createMediaStreamDestination()</code>. Combine as trilhas em <code>new MediaStream([...videoTracks,...audioTracks])</code> e grave com <code>MediaRecorder</code>, verificando <code>MediaRecorder.isTypeSupported</code>. O formato WebM costuma ser mais viável diretamente no navegador; MP4 pode exigir conversão posterior com FFmpeg.</p><p>Para exportação determinística, use relógio de composição independente de <code>requestAnimationFrame</code>, capture quadros e codifique com áudio; evite depender da velocidade do computador.</p><p>Referências: <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/captureStream">MDN captureStream</a> e <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API">MDN MediaRecorder</a>.</p></section>
+<section><h2>8. Testes obrigatórios</h2><ol><li>Silêncio: boca permanece em repouso.</li><li>M/B/P: lábios realmente se fecham, sem interferência do RMS.</li><li>Busca e pausa: timeline não perde o sincronismo.</li><li>Exportação/importação JSON: round-trip sem alterar os tempos.</li><li>Reprodução em 30/60 FPS: mesma pose para o mesmo tempo.</li><li>Áudio com diferentes sample rates e canais.</li><li>Permissões de microfone e câmera negadas.</li><li>WebM exportado com áudio e vídeo e duração coerentes.</li><li>Regressão: editor e Live originais continuam funcionando.</li></ol></section>
+<section><h2>9. Segurança e privacidade</h2><p>Não incluir chaves Groq ou outras APIs no JavaScript enviado ao navegador. Usar backend local ou servidor com variáveis de ambiente e autenticação. Exibir consentimento antes de transmitir áudio a provedores externos. Limitar tamanho/duração dos arquivos e nunca executar conteúdo do JSON como código.</p></section>
+</main><footer>Walney Moreira Klein — walneyk@hotmail.com · Documentação WMK · 2026</footer></body></html>

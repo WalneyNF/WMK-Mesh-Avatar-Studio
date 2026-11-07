@@ -4,7 +4,7 @@ import { workflowEn, workflowJa } from './workflow-i18n';
 import { uiZh, workflowZh, partsZh, fieldsZh } from './i18n-zh';
 export { readPreference, savePreference } from './preferences';
 
-export type Language = 'en' | 'ja' | 'zh';
+export type Language = 'en' | 'ja' | 'zh' | 'pt-BR';
 export const LANGUAGE_KEY = 'mesh-avatar-language';
 export const GUIDE_KEY = 'mesh-avatar-guide-seen';
 
@@ -109,10 +109,105 @@ const ja: typeof en = {
   accessory: '飾り', x: '横', y: '縦', px: '画素',
 };
 const zh: typeof en = { ...workflowZh, ...uiZh };
-export const dictionaries = { en, ja, zh };
+const ptBR: typeof en = {
+  ...en,
+  product: 'WMK Mesh Avatar Studio',
+  subtitle: 'Dê movimento à sua ilustração',
+  tools: 'Ferramentas do projeto', openProject: 'Abrir projeto',
+  openRig: 'Carregar apenas rig.json…', openFolder: 'Escolher pasta do projeto…',
+  rigFile: 'Abrir arquivo de rig', folderFiles: 'Arquivos da pasta do projeto',
+  save: 'Salvar rig', undo: 'Desfazer', redo: 'Refazer',
+  projectHelp: 'O projeto é a pasta criada a partir da ilustração: rig.json, source.png e built/.',
+  recent: 'Recentes', noRecent: 'Nenhum projeto recente.', clearHistory: 'Limpar histórico',
+  removeRecent: 'Remover do histórico', reopenLast: 'Reabrir último projeto ao iniciar',
+  browseAgain: 'Escolher novamente', missingRecent: 'Projeto não encontrado; removido do histórico:',
+  localProjects: 'Projetos locais', noProjects: 'Nenhum projeto local.',
+  sampleProject: 'Projeto de exemplo', updated: 'Atualizado',
+  renameProject: 'Renomear', renameLabel: 'Novo nome do projeto', renameSave: 'Renomear',
+  renameCancel: 'Cancelar', renameHint: 'Use letras, números, hífens e sublinhados.',
+  renameInvalid: 'Use letras, números, hífens ou sublinhados; comece com letra ou número.',
+  renameTaken: 'Já existe um projeto com esse nome.', renameFailed: 'Não foi possível renomear.',
+  drawnVariants: 'Olhos e bocas desenhados', readOnly: 'Somente leitura',
+  copyPath: 'Copiar caminho', copyFolderPath: 'Copiar caminho da pasta', copied: 'Caminho copiado',
+  showFinder: 'Abrir pasta', showFolder: 'Abrir pasta',
+  unknownPath: 'Pasta selecionada no navegador; caminho completo indisponível',
+  savedTo: 'Salvo em', saveError: 'Não foi possível salvar. As alterações continuam no editor.',
+  revealError: 'Não foi possível abrir a pasta.', copyError: 'Não foi possível copiar o caminho.',
+  help: 'Ajuda', close: 'Fechar ajuda', language: 'Idioma',
+  english: 'Inglês', japanese: 'Japonês', chinese: 'Chinês',
+  enCode: 'EN', jaCode: 'JA', zhCode: 'ZH',
+  parts: 'Partes', faceSection: 'Rosto', hairSection: 'Cabelo e acessórios',
+  bodySection: 'Corpo', advanced: 'Avançado',
+  fullBodySupport: 'Suporte ao corpo inteiro (experimental)',
+  supportSet: 'Configurado', supportNotSet: 'Não configurado',
+  supportHint: 'Partes não configuradas mantêm o movimento padrão.',
+  supportLegs: 'Pernas', supportArms: 'Braços', supportCloth: 'Tecido',
+  armSwingL: 'Balanço do braço esquerdo na imagem',
+  armSwingR: 'Balanço do braço direito na imagem',
+  elbowBendL: 'Flexão do cotovelo esquerdo na imagem',
+  elbowBendR: 'Flexão do cotovelo direito na imagem',
+  notPresent: 'Não existe neste rig',
+  show: 'Mostrar sobreposição', hide: 'Ocultar sobreposição',
+  showAll: 'Mostrar tudo', hideAll: 'Ocultar tudo',
+  source: 'Imagem original e rig', canvas: 'Área de edição do rig',
+  fit: 'Ajustar', zoom: 'Zoom', zoomOut: 'Diminuir zoom',
+  zoomIn: 'Aumentar zoom', actualSize: 'Voltar para 100%',
+  fitPart: 'Ajustar à parte selecionada', wheelMode: 'Roda do mouse',
+  wheelAuto: 'Zoom', wheelPan: 'Rolar para mover',
+  pickHint: 'Selecione uma parte à esquerda ou clique em um ponto',
+  dragHint: 'Arraste os pontos para movê-los',
+  lineHint: 'Arraste pontos · clique duas vezes na linha para adicionar · Alt+clique para remover',
+  panHint: 'Gesto de pinça para zoom · arraste a área vazia para mover',
+  noDots: 'Edite os valores no painel da parte selecionada',
+  preview: 'Pré-visualização ao vivo', idle: 'Movimento em repouso',
+  play: 'Reproduzir movimento', pause: 'Pausar movimento',
+  overlays: 'Sobreposições', overlayToggle: 'Mostrar ou ocultar sobreposição',
+  pose: 'Teste de pose', reset: 'Redefinir',
+  sweep: 'Testar ângulos', stopSweep: 'Parar teste',
+  lipSync: 'Sincronização labial', release: 'Soltar',
+  lipText: 'Texto em kana', lipPlay: 'Reproduzir', lipStop: 'Parar',
+  lipSpeed: 'Moras por segundo', lipLoop: 'Repetir',
+  skippedKana: 'Caracteres ignorados:',
+  lipHelp: 'Aceita hiragana, katakana e espaços. Apenas prévia, sem áudio.',
+  sweepTip: 'Move a cabeça em toda a amplitude para identificar falhas',
+  turn: 'Virar à esquerda/direita', look: 'Olhar para cima/baixo',
+  tilt: 'Inclinação', eyeOpen: 'Abertura dos olhos',
+  mouthOpen: 'Abertura da boca', bodyTilt: 'Inclinação do corpo',
+  weightShift: 'Transferência de peso',
+  loading: 'Carregando recursos locais…', updating: 'Atualizando prévia…',
+  ready: 'Motor pronto', previewError: 'Falha ao carregar prévia',
+  selection: 'Parte selecionada', selectedItem: 'Item selecionado do rig',
+  selectPart: 'Selecione uma parte para editar', tip: 'Dica',
+  guideTitle: 'Três passos para a primeira edição',
+  guide1: 'Selecione uma parte à esquerda',
+  guide2: 'Arraste os pontos sobre a imagem',
+  guide3: 'Veja o resultado à direita',
+  gotIt: 'Entendi', shortcuts: 'Teclado e mouse',
+  guideAgain: 'Mostrar guia novamente',
+  shortcutUndo: 'Desfazer / refazer', shortcutSave: 'Salvar rig',
+  shortcutPan: 'Mover imagem', shortcutZoom: 'Aproximar / afastar',
+  shortcutVertex: 'Adicionar / remover ponto',
+  spaceDrag: 'Espaço + arrastar', wheel: 'Rolar',
+  vertexKeys: 'Duplo clique na linha / Alt+clique no ponto',
+  stale: 'Os contornos mudaram. A prévia ainda usa as camadas anteriores.',
+  changedParts: 'Partes alteradas', checking: 'Verificando imagens de exemplo…',
+  emptyTitle: 'Abrir projeto',
+  emptyHelp: 'Escolha um projeto em Abrir projeto ou selecione sua pasta.',
+  newProjectHelp: 'Para uma nova ilustração, peça ao agente que prepare o projeto usando o guia.',
+  invalidRig: 'Não foi possível abrir o rig. Verifique o JSON e os campos:',
+  invalidFolder: 'Não foi possível abrir a pasta. Verifique rig.json e layers.json.',
+  missingFolderFiles: 'Arquivos obrigatórios ausentes: source.png, layers.json e imagens recortadas.',
+  unreadableFolder: 'Não foi possível ler arquivo ou pasta. Verifique as permissões.',
+  unreadableProject: 'Não foi possível ler o projeto. Verifique as permissões.',
+  invalidValue: 'Verifique os valores nestes campos:',
+  point: 'ponto', node: 'nó', strand: 'Mecha', eye: 'Olho',
+  accessory: 'Acessório', x: 'X', y: 'Y', px: 'px',
+};
+export const dictionaries = { en, ja, zh, 'pt-BR': ptBR };
 export type PartGroup = 'head' | 'eyes' | 'mouth' | 'face' | 'cheeks' | 'strands' | 'buns' | 'accessories' | 'body' | 'hand' | 'legs' | 'arms' | 'cloth' | 'mesh' | 'view';
 const partText: Record<Language, Record<PartGroup, [string, string, string]>> = {
   zh: partsZh,
+  'pt-BR': {} as Record<PartGroup, [string, string, string]>,
   en: {
     arms: ['Arms', 'Small motions of hanging arms.', 'Use only when a transparent gap separates the arms from the body. Place image-left/right shoulder, elbow and wrist joints and trace each boundary in the gap.'],
     legs: ['Legs', 'Planted feet and weight transfer.', 'Place the pelvis and image-left/right hip, knee and ankle joints. Trace the split between the legs, then test both weight-shift directions.'],
@@ -148,6 +243,7 @@ const partText: Record<Language, Record<PartGroup, [string, string, string]>> = 
     view: ['表示範囲', 'プレビューの余白。', '頭や飾りがプレビューからはみ出さないように余白を調整してください。'],
   },
 };
+partText['pt-BR'] = { ...partText.en, head: ['Cabeça', 'Rotação e inclinação da cabeça.', 'Ajuste o centro do rosto e cubra toda a cabeça.'], eyes: ['Olhos', 'Piscar e direção do olhar.', 'Ajuste o contorno dos olhos.'], mouth: ['Boca', 'Abertura e sincronização labial.', 'Ajuste o contorno dos lábios.'], body: ['Corpo', 'Respiração e balanço.', 'Ajuste o pivô e a região do peito.'], strands: ['Mechas de cabelo', 'Movimento físico do cabelo.', 'Ajuste os pontos da raiz até a ponta.'] };
 const fieldText: Record<string, [string, string]> = {
   pelvis: ['Pelvis', '骨盤'], left: ['Image-left leg', '画像左の脚'], right: ['Image-right leg', '画像右の脚'],
   hip: ['Hip', '股関節'], knee: ['Knee', '膝'], ankle: ['Ankle', '足首'],
@@ -186,6 +282,7 @@ const fieldText: Record<string, [string, string]> = {
 const armFieldText: Record<Language, Record<string, string>> = {
   en: { left: 'Image-left arm', right: 'Image-right arm', shoulder: 'Shoulder', split: 'Arm boundary', swing: 'Upper-arm swing limit (degrees)', bend: 'Elbow bend limit (degrees)', inward: 'Inward swing fraction' },
   ja: { left: '画像左の腕', right: '画像右の腕', shoulder: '肩', split: '腕の境界線', swing: '上腕の振りの上限 (度)', bend: '肘の曲げの上限 (度)', inward: '内側に振れる割合' },
+  'pt-BR': { left: 'Braço esquerdo na imagem', right: 'Braço direito na imagem', shoulder: 'Ombro', split: 'Limite do braço', swing: 'Balanço máximo (graus)', bend: 'Flexão máxima do cotovelo (graus)', inward: 'Fração do balanço interno' },
   zh: { left: '图像左臂', right: '图像右臂', shoulder: '肩关节', split: '手臂分界线', swing: '上臂摆动上限 (度)', bend: '手肘弯曲上限 (度)', inward: '向内摆动比例' },
 };
 export function fieldTitle(path: string, language: Language) {
@@ -200,21 +297,21 @@ export function fieldTitle(path: string, language: Language) {
       if (key in parts) return parts[key as PartGroup][0];
     }
     if (path.startsWith('arms.') && armFieldText[language][key]) return armFieldText[language][key];
-    if (key === 'split' && path.startsWith('legs.')) return { en: 'Leg boundary', ja: '脚の境界線', zh: '双腿分界线' }[language];
-    return language === 'zh' ? fieldsZh[key] ?? key : fieldText[key]?.[language === 'en' ? 0 : 1] ?? key;
+    if (key === 'split' && path.startsWith('legs.')) return { en: 'Leg boundary', ja: '脚の境界線', zh: '双腿分界线', 'pt-BR': 'Divisão das pernas' }[language];
+    return language === 'zh' ? fieldsZh[key] ?? key : fieldText[key]?.[language === 'en' || language === 'pt-BR' ? 0 : 1] ?? key;
   }).join(' · ');
 }
 const Context = createContext({ language: 'en' as Language, setLanguage: (_: Language) => { void _; } });
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = readPreference(LANGUAGE_KEY);
-    return saved === 'ja' || saved === 'zh' ? saved : 'en';
+    return saved === 'ja' || saved === 'zh' || saved === 'en' ? saved : 'pt-BR';
   });
   useEffect(() => { document.documentElement.lang = language === 'zh' ? 'zh-CN' : language; savePreference(LANGUAGE_KEY, language); }, [language]);
   return <Context.Provider value={{ language, setLanguage }}>{children}</Context.Provider>;
 }
 export function useI18n() {
   const context = useContext(Context);
-  return { ...context, t: dictionaries[context.language], parts: partText[context.language], locale: { en: 'en-GB', ja: 'ja-JP', zh: 'zh-CN' }[context.language],
+  return { ...context, t: dictionaries[context.language], parts: partText[context.language], locale: { en: 'en-GB', ja: 'ja-JP', zh: 'zh-CN', 'pt-BR': 'pt-BR' }[context.language],
     title: (path: string) => fieldTitle(path, context.language) };
 }

@@ -1,0 +1,55 @@
+{
+  "language": "wmk-expression/0.1",
+  "name": "NEX — apresentação",
+  "description": "Uma IA pode enviar este JSON para animar os canais faciais disponíveis.",
+  "steps": [
+    {
+      "action": "reset",
+      "region": "face",
+      "durationMs": 250
+    },
+    {
+      "action": "set",
+      "region": "brows",
+      "values": {
+        "browA": 3,
+        "browB": 2
+      },
+      "durationMs": 400
+    },
+    {
+      "action": "set",
+      "region": "mouth",
+      "values": {
+        "mouthOpen": 48,
+        "mouthForm": 12,
+        "mouthWidth": 108,
+        "mouthStrength": 75,
+        "lipUpper": 38,
+        "lipLower": 50,
+        "jawDrop": 28
+      },
+      "durationMs": 450
+    },
+    {
+      "action": "wait",
+      "durationMs": 550
+    },
+    {
+      "action": "set",
+      "region": "mouth",
+      "values": {
+        "mouthOpen": 0,
+        "mouthForm": 0,
+        "mouthWidth": 100,
+        "jawDrop": 0
+      },
+      "durationMs": 400
+    },
+    {
+      "action": "reset",
+      "region": "face",
+      "durationMs": 400
+    }
+  ]
+}

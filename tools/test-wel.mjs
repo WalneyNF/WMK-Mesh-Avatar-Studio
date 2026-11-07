@@ -1,0 +1,14 @@
+import {compile,sample} from '../wmk-expression-engine.mjs';
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const doc=JSON.parse(fs.readFileSync(new URL('./wmk-expression-demo.json',import.meta.url)));
+const plan=compile(doc);
+assert.equal(plan.frames.length,6);
+assert.equal(plan.durationMs,2450);
+assert.equal(sample(plan,0).mouthOpen,0);
+assert.equal(sample(plan,2450).mouthOpen,0);
+assert.ok(sample(plan,1000).mouthOpen>0);
+assert.throws(()=>compile({...doc,steps:[{action:'set',region:'mouth',values:{browA:3},durationMs:100}]}),/fora da região/);
+assert.throws(()=>compile({...doc,steps:[{action:'set',region:'mouth',values:{mouthOpen:200},durationMs:100}]}),/fora do intervalo/);
+assert.throws(()=>compile({...doc,steps:[{action:'evil',durationMs:100}]}),/desconhecida/);
+console.log('WEL OK: 6 etapas, interpolação e 3 validações negativas');

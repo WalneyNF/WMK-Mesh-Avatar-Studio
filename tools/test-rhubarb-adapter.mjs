@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {convertRhubarb,sampleViseme,validateRhubarb} from '../wmk-rhubarb-adapter.mjs';
+const source={mouthCues:[{start:0,end:.1,value:'X'},{start:.1,end:.3,value:'D'},{start:.3,end:.5,value:'A'}]};
+const result=convertRhubarb(source);
+assert.equal(result.durationMs,500);
+assert.equal(result.tracks.visemes[1].startMs,100);
+assert.equal(sampleViseme(result,150).mouthOpen,80);
+assert.equal(sampleViseme(result,400).mouthOpen,0);
+assert.equal(sampleViseme(result,600).mouthOpen,0);
+assert.ok(validateRhubarb({mouthCues:[{start:0,end:1,value:'Z'}]}).length);
+assert.ok(validateRhubarb({mouthCues:[{start:1,end:0,value:'A'}]}).length);
+console.log('OK: conversão, tempos, visemas, repouso e validação');

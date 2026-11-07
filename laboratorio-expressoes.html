@@ -1,0 +1,248 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WMK Laboratório de Expressões</title><style>body{margin:0;background:#0d1430;color:#eaf3ff;font:14px system-ui}header{background:#1b2445;padding:15px 22px;display:flex;align-items:center;gap:20px}a{color:#5bdff3}main{display:grid;grid-template-columns:280px 1fr 310px;gap:12px;padding:14px;height:calc(100vh - 85px);box-sizing:border-box}section{background:#192643;border:1px solid #3e5279;border-radius:10px;padding:18px;overflow:auto}h2{margin-top:0}button,select,input{background:#263d68;color:#fff;border:1px solid #536e9f;border-radius:6px;padding:8px}button{cursor:pointer}button:hover{background:#34558b}select{width:100%}label{display:block;margin:15px 0}label span{display:block;margin-bottom:8px}input[type=range]{width:100%;padding:0}canvas{display:block;max-width:none;height:auto;margin:auto;background:#0b1529;flex:none}#preview{display:block;height:calc(100% - 160px);min-height:420px;background:#0b1529;overflow:auto;scrollbar-gutter:stable}#preview-space{display:flex;align-items:center;justify-content:center;min-width:100%;min-height:100%;width:max-content;height:max-content;padding:24px;box-sizing:border-box}.zoom-bar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:10px 0}.zoom-bar input{width:74px}.zoom-bar button{min-width:35px}#status{color:#b9dcf3;white-space:pre-wrap}.note{font-size:12px;color:#afc4e0;line-height:1.5}.buttons{display:flex;gap:6px;flex-wrap:wrap}.random-limits{display:grid;grid-template-columns:minmax(0,1fr) 48px 48px 48px;gap:5px;align-items:center;font-size:12px}.random-limits input{width:100%;box-sizing:border-box;padding:5px}.random-limits .heading{color:#9fd7ee;font-weight:700}.random-limits .limit-name{white-space:nowrap}.random-limits label{margin:0}.limit-actions{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}@media(max-width:950px){main{display:block;height:auto}section{margin:10px 0}}</style></head><body><header><strong>WMK — Laboratório de Expressões 2D</strong><a href="/editor-pontos.html">← Editor de Pontos</a><small>Walney Moreira Klein — walneyk@hotmail.com</small></header><main><section><h2>Personagem</h2><select id="projects"></select><button id="load">Abrir personagem</button><p id="status">Carregando projetos…</p><h2>Simulação aleatória</h2><div class="buttons"><button id="random-once">🎲 Sortear expressão</button><button id="random-auto">▶ Automático</button></div><label><span>Intervalo: <output id="random-ms-value">900</output> ms</span><input id="random-ms" type="range" min="250" max="3000" step="50" value="900"></label><label><input id="random-mouth" type="checkbox" checked> Boca, lábios e mandíbula</label><label><input id="random-brows" type="checkbox" checked> Sobrancelhas independentes</label><details id="random-limits-panel" open><summary><strong>Limites do sorteio (mínimo / máximo)</strong></summary><p class="note">Ajuste a faixa de cada controle. Esses limites afetam somente o modo aleatório, não os sliders manuais. São salvos neste navegador.</p><div id="random-limits-grid" class="random-limits"></div><div class="limit-actions"><button id="random-limits-safe">Faixas suaves</button><button id="random-limits-full">Faixas completas</button></div></details><p class="note" id="random-status">Aguardando sorteio. Os valores da boca são combinados para formar expressões coerentes.</p><h2>WEL — Linguagem JSON</h2><p class="note">Cole comandos de uma IA, valide e reproduza a animação. Não modifica os arquivos do rig.</p><textarea id="wel-json" spellcheck="false" style="width:100%;height:210px;box-sizing:border-box;background:#101b34;color:#e5f5ff;border:1px solid #536e9f;border-radius:6px;font:11px monospace"></textarea><div class="buttons"><button id="wel-demo">Carregar exemplo</button><button id="wel-run">▶ Executar JSON</button><button id="wel-stop">■ Parar</button></div><p id="wel-status" class="note">Aguardando JSON.</p><h2>Expressões prontas</h2><div class="buttons"><button data-preset="neutral">Neutro</button><button data-preset="doubt">Desconfiança</button><button data-preset="surprise">Surpresa</button><button data-preset="angry">Raiva</button></div><p class="note">Os presets desta página controlam apenas o teste visual. Não alteram o JSON nem salvam sobre o projeto.</p></section><section><h2>Prévia real do personagem</h2><div class="zoom-bar"><button id="zoomout" title="Reduzir zoom">−</button><button id="zoomin" title="Aumentar zoom">＋</button><label style="margin:0">Zoom <input id="zoom" type="number" min="25" max="800" step="25" value="100">%</label><button id="zoomfit">Ajustar</button><button id="zoomactual">100%</button><label style="margin:0"><input id="compare" type="checkbox"> Antes / Depois</label></div><div id="preview"><div id="preview-space"><canvas id="canvas" width="457" height="497"></canvas></div></div><p class="note">Prova de conceito: deformação local dos pixels na região de cada sobrancelha. Como a imagem é uma camada única, cabelo e pele próximos também podem deformar. Não é um rig final.</p></section><section><h2>Controles independentes</h2><h3>Boca — prévia procedural</h3><p class="note">Usa os pontos salvos para calcular centro e largura. Prévia experimental: a boca é desenhada sobre a imagem e a região inferior recebe deformação localizada. Ainda não é uma malha triangular nem um rig final.</p><label><span>Abertura: <output id="valueOpen">0</output>%</span><input id="mouthOpen" type="range" min="0" max="100" value="0"></label><label><span>Formato (arredondar): <output id="valueForm">0</output>%</span><input id="mouthForm" type="range" min="0" max="100" value="0"></label><label><span>Largura: <output id="valueWidth">100</output>%</span><input id="mouthWidth" type="range" min="60" max="150" value="100"></label><label><span>Intensidade: <output id="valueStrength">100</output>%</span><input id="mouthStrength" type="range" min="0" max="100" value="100"></label><label><span>Lábio superior: <output id="valueUpper">50</output>%</span><input id="lipUpper" type="range" min="0" max="100" value="50"></label><label><span>Lábio inferior: <output id="valueLower">75</output>%</span><input id="lipLower" type="range" min="0" max="100" value="75"></label><label><span>Mandíbula: <output id="valueJaw">50</output>%</span><input id="jawDrop" type="range" min="0" max="100" value="50"></label><div class="buttons"><button data-mouth="neutral">Fechada</button><button data-mouth="a">Vogal A</button><button data-mouth="o">Vogal O</button><button data-mouth="m">M / B / P</button></div><p id="mouth-status" class="note">Aguardando parâmetros da boca.</p><hr><label><span>Sobrancelha A: <output id="valueA">0</output> px</span><input id="browA" type="range" min="-20" max="20" value="0"></label><label><span>Sobrancelha B: <output id="valueB">0</output> px</span><input id="browB" type="range" min="-20" max="20" value="0"></label><p class="note">Valores positivos levantam a sobrancelha; negativos abaixam. Os controles usam os centros e raios do rascunho salvo.</p><button id="reset">Restaurar expressão neutra</button><hr><h2>Objetivo do teste</h2><p class="note">Verificar se conseguimos mover cada sobrancelha independentemente na imagem real do NEX, sem mexer no Editor de Pontos. O próximo passo será melhorar a máscara e preservar melhor a pele ao redor.</p></section></main><script type="module">
+import {compile,sample,neutral} from "./wmk-expression-engine.mjs";
+import {renderMouth} from "./wmk-facial-renderer.mjs";
+const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d'),src=document.createElement('canvas'),sc=src.getContext('2d',{willReadFrequently:true});
+let rig=null,original=null,mouthBridge=null,zoom=100;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function setZoom(value){
+ zoom=clamp(Math.round(Number(value)||100),25,800);
+ $('zoom').value=zoom;
+ canvas.style.width=(canvas.width*zoom/100)+'px';
+ canvas.style.height=(canvas.height*zoom/100)+'px';
+}
+$('zoomin').onclick=()=>setZoom(zoom+25);
+$('zoomout').onclick=()=>setZoom(zoom-25);
+$('zoomactual').onclick=()=>setZoom(100);
+$('zoomfit').onclick=()=>{if(!canvas.width||!canvas.height)return;const v=$('preview');setZoom(Math.floor(100*Math.min((v.clientWidth-48)/canvas.width,(v.clientHeight-48)/canvas.height)))};
+$('zoom').onchange=()=>setZoom($('zoom').value);
+$('preview').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();setZoom(zoom+(e.deltaY<0?25:-25))},{passive:false});
+function draw(){
+ if(!original||!rig)return;
+ const w=canvas.width,h=canvas.height,output=new Uint8ClampedArray(original.data),a=Number($('browA').value),b=Number($('browB').value);
+ $('valueA').value=String(a);$('valueB').value=String(b);
+ const regions=[{r:rig.face.browA||rig.face.brow,dy:a},{r:rig.face.browB||rig.face.brow,dy:b}];
+ // Inverse mapping avoids holes: each destination pixel samples its displaced source.
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  let displacement=0;
+  for(const {r,dy} of regions){
+   if(!r||!dy)continue;
+   const rx=Math.max(8,r.rx*1.6),ry=Math.max(7,r.ry*2.2);
+   const nx=(x-r.cx)/rx,ny=(y-r.cy)/ry,d=nx*nx+ny*ny;
+   if(d<1)displacement+=dy*Math.pow(1-d,2);
+  }
+  if(!displacement)continue;
+  const sourceY=clamp(Math.round(y+displacement),0,h-1),from=(sourceY*w+x)*4,to=(y*w+x)*4;
+  for(let k=0;k<4;k++)output[to+k]=original.data[from+k];
+ }
+ // Deformação suave da região abaixo da boca: remapeamento inverso com atenuação.
+ if(mouthBridge&&!$('compare').checked){
+  const m=mouthBridge.mouth,opening=Number($('mouthOpen').value)/100,force=Number($('mouthStrength').value)/100,jaw=Number($('jawDrop').value)/100;
+  const drop=opening*force*jaw*7;
+  if(drop>.01){
+   const rx=Math.max(20,m.halfLen*1.8),ry=32;
+   for(let y=Math.max(0,Math.floor(m.cy));y<Math.min(h,Math.ceil(m.cy+ry));y++)
+    for(let x=Math.max(0,Math.floor(m.cx-rx));x<Math.min(w,Math.ceil(m.cx+rx));x++){
+     const nx=(x-m.cx)/rx,ny=(y-m.cy)/ry;
+     if(nx*nx+ny*ny>=1)continue;
+     const falloff=Math.pow(1-nx*nx-ny*ny,2);
+     const sy=clamp(Math.round(y-drop*falloff),0,h-1);
+     const from=(sy*w+x)*4,to=(y*w+x)*4;
+     for(let k=0;k<4;k++)output[to+k]=original.data[from+k];
+    }
+  }
+ }
+ ctx.putImageData(new ImageData(output,w,h),0,0);if(!$('compare').checked)drawMouth();
+}
+function drawMouth(){
+ if(!mouthBridge||!original)return;
+ const values=Object.fromEntries(['mouthOpen','mouthForm','mouthWidth','mouthStrength','lipUpper','lipLower','jawDrop'].map(id=>[id,Number($(id).value)]));
+ for(const [id,out] of [['mouthOpen','valueOpen'],['mouthForm','valueForm'],['mouthWidth','valueWidth'],['mouthStrength','valueStrength'],['lipUpper','valueUpper'],['lipLower','valueLower'],['jawDrop','valueJaw']])$(out).value=values[id];
+ renderMouth(ctx,mouthBridge.mouth,values);
+}
+
+async function load(){
+ try{
+  const name=$('projects').value;if(!name)return;loadLimits();
+  const response=await fetch('/__studio/drafts/'+encodeURIComponent(name));
+  if(!response.ok)throw Error('Não foi possível ler o rascunho');
+  rig=await response.json();mouthBridge=null;try{const br=await fetch('/__studio/mouth-bridge/'+encodeURIComponent(name));if(br.ok)mouthBridge=await br.json()}catch(_){}$('mouth-status').textContent=mouthBridge?'Parâmetros carregados: '+mouthBridge.mouth.halfLen.toFixed(1)+' px de meia largura.':'Ponte da boca não disponível. Execute python tools/wmk_mouth_bridge.py '+name;
+  const image=new Image();image.onload=()=>{
+   canvas.width=src.width=image.naturalWidth;canvas.height=src.height=image.naturalHeight;
+   sc.clearRect(0,0,src.width,src.height);sc.drawImage(image,0,0);
+   original=sc.getImageData(0,0,src.width,src.height);draw();setZoom(zoom);
+   $('status').textContent='Projeto '+name+' carregado. Experimente os controles.';
+  };image.onerror=()=>{$('status').textContent='Erro ao abrir source.png'};
+  image.src='/__studio/projects/'+encodeURIComponent(name)+'/source.png';
+ }catch(e){$('status').textContent=String(e)}
+}
+async function init(){try{const r=await fetch('/__studio/drafts');if(!r.ok)throw Error('Servidor local indisponível');const names=await r.json();$('projects').replaceChildren();for(const name of names){const o=document.createElement('option');o.value=o.textContent=name;$('projects').append(o)}if(names.length)await load();else $('status').textContent='Nenhum projeto encontrado.'}catch(e){$('status').textContent=String(e)}}
+$('load').onclick=load;
+for(const id of ['browA','browB','mouthOpen','mouthForm','mouthWidth','mouthStrength','lipUpper','lipLower','jawDrop'])$(id).oninput=()=>{updateRandomValues();draw()};document.querySelectorAll('[data-mouth]').forEach(b=>b.onclick=()=>{const presets={neutral:[0,0,100],a:[75,0,115],o:[60,90,75],m:[0,0,100]};const v=presets[b.dataset.mouth];$('mouthOpen').value=v[0];$('mouthForm').value=v[1];$('mouthWidth').value=v[2];updateRandomValues();draw()});
+// Limites individuais do sorteio. Não alteram os limites dos sliders manuais.
+const limitDefs=[
+ ['mouthOpen','Abertura',0,60],['mouthForm','Formato',0,65],
+ ['mouthWidth','Largura',90,112],['mouthStrength','Intensidade',45,85],
+ ['lipUpper','Lábio superior',0,50],['lipLower','Lábio inferior',0,65],
+ ['jawDrop','Mandíbula',0,45],['browA','Sobrancelha A',-3,3],
+ ['browB','Sobrancelha B',-3,3]
+];
+const limitKey=()=> 'wmk-random-limits-v1-'+$('projects').value;
+function limitInputs(id){return [$('limit-min-'+id),$('limit-max-'+id)]}
+function validateLimit(id){
+ const slider=$(id),[lo,hi]=limitInputs(id);
+ const floor=Number(slider.min),ceil=Number(slider.max);
+ let a=clamp(Number(lo.value),floor,ceil),b=clamp(Number(hi.value),floor,ceil);
+ if(!Number.isFinite(a))a=floor;if(!Number.isFinite(b))b=ceil;
+ if(a>b)[a,b]=[b,a];
+ lo.value=String(a);hi.value=String(b);
+ return [a,b];
+}
+function saveLimits(){
+ try{localStorage.setItem(limitKey(),JSON.stringify(Object.fromEntries(limitDefs.map(([id])=>[id,validateLimit(id)]))))}
+ catch(e){$('random-status').textContent='Não foi possível salvar limites no navegador: '+e.message}
+}
+function applyLimits(values){
+ for(const [id,,defMin,defMax] of limitDefs){
+  const v=values&&Array.isArray(values[id])?values[id]:[defMin,defMax];
+  const [lo,hi]=limitInputs(id);lo.value=v[0];hi.value=v[1];validateLimit(id);
+ }
+}
+function loadLimits(){
+ let saved=null;
+ try{saved=JSON.parse(localStorage.getItem(limitKey())||'null')}catch(_){}
+ applyLimits(saved);
+}
+function initLimits(){
+ const grid=$('random-limits-grid');
+ for(const heading of ['Controle','Mín.','Máx.','Atual']){
+  const el=document.createElement('div');el.className='heading';el.textContent=heading;grid.append(el);
+ }
+ for(const [id,name,defMin,defMax] of limitDefs){
+  const label=document.createElement('span');label.className='limit-name';label.textContent=name;grid.append(label);
+  for(const [side,defaultValue] of [['min',defMin],['max',defMax]]){
+   const el=document.createElement('input');el.type='number';el.id='limit-'+side+'-'+id;
+   el.min=$(id).min;el.max=$(id).max;el.step='1';el.value=defaultValue;
+   el.setAttribute('aria-label',(side==='min'?'Mínimo':'Máximo')+' de '+name);
+   el.addEventListener('change',saveLimits);grid.append(el);
+  }
+  const current=document.createElement('output');current.id='random-current-'+id;current.textContent='—';current.style.cssText='font-weight:700;color:#8be7b3;text-align:center;font-variant-numeric:tabular-nums';grid.append(current);
+ }
+ $('random-limits-safe').onclick=()=>{applyLimits(null);saveLimits()};
+ $('random-limits-full').onclick=()=>{
+  applyLimits(Object.fromEntries(limitDefs.map(([id])=>[id,[Number($(id).min),Number($(id).max)]])));
+  saveLimits();
+ };
+ loadLimits();
+ updateRandomValues();
+}
+function randomWithin(id,proposedRange){
+ const [a,b]=validateLimit(id);
+ if(!proposedRange)return integer(a,b);
+ // Mantém o perfil da vogal sempre que ele cruza a faixa escolhida.
+ const low=Math.max(a,proposedRange[0]),high=Math.min(b,proposedRange[1]);
+ if(low<=high)return integer(low,high);
+ return proposedRange[1]<a?a:b;
+}
+// Gerador de expressões: grupos independentes, mas parâmetros da boca correlacionados.
+let randomTimer=null;
+const rand=(min,max)=>min+Math.random()*(max-min);
+const integer=(min,max)=>Math.round(rand(min,max));
+function setSlider(id,value){
+ const el=$(id);el.value=String(clamp(Math.round(value),Number(el.min),Number(el.max)));
+}
+function updateRandomValues(){
+ for(const [id] of limitDefs){
+  const el=$('random-current-'+id);
+  if(el)el.textContent=$(id).value;
+ }
+}
+function randomExpression(){
+ if($('random-mouth').checked){
+  // Distribuição ponderada: pausas, vogais abertas, vogais arredondadas e fala curta.
+  const states=[
+   {name:'Pausa / boca fechada',weight:2,open:[0,8],form:[0,30],width:[92,108],upper:[15,45],lower:[15,45],jaw:[0,15]},
+   {name:'Vogal aberta (A/E)',weight:3,open:[55,95],form:[0,30],width:[95,130],upper:[45,90],lower:[60,100],jaw:[55,100]},
+   {name:'Vogal arredondada (O/U)',weight:2,open:[35,75],form:[65,100],width:[60,85],upper:[45,85],lower:[45,85],jaw:[35,75]},
+   {name:'Fala curta (I/E)',weight:3,open:[15,50],form:[0,40],width:[95,135],upper:[20,65],lower:[20,65],jaw:[15,55]}
+  ];
+  const total=states.reduce((a,s)=>a+s.weight,0);
+  let roll=Math.random()*total;
+  const chosen=states.find(s=>(roll-=s.weight)<0)||states[states.length-1];
+  for(const [key,id] of [['open','mouthOpen'],['form','mouthForm'],['width','mouthWidth'],['upper','lipUpper'],['lower','lipLower'],['jaw','jawDrop']]){
+   setSlider(id,randomWithin(id,chosen[key]));
+  }
+  setSlider('mouthStrength',randomWithin('mouthStrength',[75,100]));
+  $('random-status').textContent='Expressão: '+chosen.name;
+ }
+ if($('random-brows').checked){
+  // Cada sobrancelha recebe valor independente, sem acoplamento à boca.
+  setSlider('browA',randomWithin('browA'));
+  setSlider('browB',randomWithin('browB'));
+ }
+ updateRandomValues();
+ draw();
+}
+function stopRandom(){
+ if(randomTimer!==null){clearInterval(randomTimer);randomTimer=null;}
+ $('random-auto').textContent='▶ Automático';
+}
+function startRandom(){
+ stopRandom();
+ randomExpression();
+ randomTimer=setInterval(randomExpression,Number($('random-ms').value));
+ $('random-auto').textContent='■ Parar';
+}
+$('random-once').onclick=randomExpression;
+$('random-auto').onclick=()=>randomTimer===null?startRandom():stopRandom();
+$('random-ms').oninput=()=>{
+ $('random-ms-value').value=$('random-ms').value;
+ if(randomTimer!==null)startRandom();
+};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRandom()});
+function set(a,b){$('browA').value=String(a);$('browB').value=String(b);updateRandomValues();draw()}
+$('reset').onclick=()=>{stopRandom();set(0,0);$('mouthOpen').value=0;$('mouthForm').value=0;$('mouthWidth').value=100;$('mouthStrength').value=100;$('lipUpper').value=50;$('lipLower').value=75;$('jawDrop').value=50;$('compare').checked=false;updateRandomValues();draw()};$('compare').onchange=draw;
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const presets={neutral:[0,0],doubt:[14,-10],surprise:[14,14],angry:[-10,-10]};set(...presets[b.dataset.preset])});
+
+// WEL 0.1: execução local e segura de etapas declarativas.
+let welFrame=null,welStart=0;
+const welChannels=Object.keys(neutral());
+function stopWel(){
+ if(welFrame!==null){cancelAnimationFrame(welFrame);welFrame=null}
+}
+function applyWel(values){
+ for(const id of welChannels)setSlider(id,values[id]);
+ updateRandomValues();draw();
+}
+const welExample={
+ language:"wmk-expression/0.1",name:"NEX — teste de fala",
+ steps:[
+  {action:"reset",region:"face",durationMs:250},
+  {action:"set",region:"brows",values:{browA:3,browB:2},durationMs:400},
+  {action:"set",region:"mouth",values:{mouthOpen:48,mouthForm:12,mouthWidth:108,mouthStrength:75,lipUpper:38,lipLower:50,jawDrop:28},durationMs:450},
+  {action:"wait",durationMs:550},
+  {action:"set",region:"mouth",values:{mouthOpen:0,mouthForm:0,mouthWidth:100,jawDrop:0},durationMs:400},
+  {action:"reset",region:"face",durationMs:400}
+ ]
+};
+$('wel-demo').onclick=()=>{$('wel-json').value=JSON.stringify(welExample,null,2);$('wel-status').textContent='Exemplo carregado. Clique em Executar JSON.'};
+$('wel-stop').onclick=()=>{stopWel();$('wel-status').textContent='Animação interrompida.'};
+$('wel-run').onclick=()=>{
+ stopWel();stopRandom();
+ try{
+  const doc=JSON.parse($('wel-json').value);
+  const initial=Object.fromEntries(welChannels.map(id=>[id,Number($(id).value)]));
+  const plan=compile(doc,initial);
+  $('wel-status').textContent='JSON válido: '+plan.frames.length+' etapas, '+plan.durationMs+' ms.';
+  welStart=performance.now();
+  function tick(now){
+   const elapsed=Math.min(plan.durationMs,now-welStart);
+   applyWel(sample(plan,elapsed));
+   if(elapsed<plan.durationMs){welFrame=requestAnimationFrame(tick)}
+   else{welFrame=null;$('wel-status').textContent='Concluído: '+plan.frames.length+' etapas, '+plan.durationMs+' ms.'}
+  }
+  welFrame=requestAnimationFrame(tick);
+ }catch(err){$('wel-status').textContent='Erro no JSON: '+err.message}
+};
+$('wel-demo').click();
+initLimits();init();
+</script></body></html>

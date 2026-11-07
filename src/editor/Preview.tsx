@@ -136,7 +136,7 @@ export function Preview({ projectKey, rig, assets, lipSync, onLipSyncChange, has
       <div className="panel-title"><h2>{t.preview}</h2><span role="status" data-testid="preview-status" data-state={status}>{t[status]}</span>{tab === 'lip' && <button className="icon-button lip-idle-toggle" aria-label={idle ? t.pause : t.play} title={idle ? t.pause : t.play} data-testid="idle-toggle" aria-pressed={idle} onClick={() => setIdle(current => !current)}><Icon name={idle ? 'pause' : 'play'} /></button>}</div>
       <div className="lighting-preview"><canvas ref={canvas} data-testid="preview" data-revision={revision} className="preview-canvas"
         style={{ aspectRatio: `${rig.image.width * (1 + 2 * rig.view.padSide)} / ${rig.image.height * (1 + rig.view.padTop)}` }} />
-      {lightingOpen && <LightHandle value={lighting} onChange={setLighting} language={language} />}
+      {lightingOpen && <LightHandle value={lighting} onChange={setLighting} language={language === 'pt-BR' ? 'en' : language} />}
       </div>
       <div className="preview-tools" hidden={tab === 'lip'}>
         <button className="icon-button" aria-label={idle ? t.pause : t.play} title={idle ? t.pause : t.play}
@@ -197,8 +197,8 @@ export function Preview({ projectKey, rig, assets, lipSync, onLipSyncChange, has
 
       </div>
       <details className="lighting-section" data-testid="lighting-section" onToggle={event => setLightingOpen(event.currentTarget.open)}>
-        <summary><Icon name="light" />{lightingText[language].title}{lighting.enabled && <span className="lighting-on">ON</span>}</summary>
-        <LightingControls value={lighting} onChange={setLighting} language={language} />
+        <summary><Icon name="light" />{lightingText[language === 'pt-BR' ? 'en' : language].title}{lighting.enabled && <span className="lighting-on">ON</span>}</summary>
+        <LightingControls value={lighting} onChange={setLighting} language={language === 'pt-BR' ? 'en' : language} />
       </details>
     </section>
   );

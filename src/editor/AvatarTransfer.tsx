@@ -33,7 +33,7 @@ export function ImportAvatar({ busy, available, onImport }: { busy: boolean; ava
       event.preventDefault(); event.stopPropagation(); setDragging(false);
       const file = event.dataTransfer.files[0]; if (file && !busy && available) onImport(file);
     }}>
-    <input ref={input} type="file" accept=".mavatar" hidden aria-label={text.archiveFile} onChange={event => { const file = event.target.files?.[0]; if (file) onImport(file); event.target.value = ''; }} />
+    <input ref={input} type="file" accept=".wmk,.mavatar" hidden aria-label={text.archiveFile} onChange={event => { const file = event.target.files?.[0]; if (file) onImport(file); event.target.value = ''; }} />
     <button disabled={busy || !available} onClick={() => input.current?.click()}>{busy ? text.busy : text.importTitle}</button>
     <p>{available ? text.importHelp : text.importUnavailable}</p>
   </div>;

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "project": "NEX_apresentador",
+  "source": "landmarks.draft.json",
+  "target": "Mesh Avatar Studio / rig.mouth",
+  "mouth": {
+    "cx": 229.05,
+    "cy": 167.39,
+    "angle": -0.03538,
+    "halfLen": 16.961,
+    "bow": -0.075,
+    "area": {
+      "cx": 229.36618650492798,
+      "cy": 172.94931518084147,
+      "rx": 27.419999999999998,
+      "ry": 14.91,
+      "angle": 0
+    }
+  },
+  "status": "prévia de conversão; ainda requer camadas e rig completo"
+}

@@ -30,6 +30,15 @@ export const lipSyncText = {
     file: '音声ファイルで試す', noFile: '音声未選択', stop: '音声プレビューを停止',
     hint: '設定は保存・書き出し時にアバターへ含めます。選んだ音声はこのブラウザ内で再生します。', error: 'この音声ファイルを再生できませんでした。',
   },
+  'pt-BR': {
+    movementTitle: 'Estilo do movimento da boca', calm: 'Calmo', default: 'Padrão', lively: 'Ágil', subtle: 'Discreto', big: 'Expressivo', custom: 'Personalizado',
+    demoHint: 'Escolha um estilo para testar a fala.', granularity: 'Movimento da boca', granularityLow: 'Suave', granularityHigh: 'Ágil',
+    openness: 'Abertura da boca', opennessLow: 'Pequena', opennessHigh: 'Grande', closeSpeed: 'Velocidade de fechamento', closeSpeedLow: 'Suave', closeSpeedHigh: 'Rápida',
+    advanced: 'Ajustes avançados', title: 'Sincronização labial por áudio',
+    file: 'Testar arquivo de áudio local', noFile: 'Nenhum áudio selecionado', stop: 'Parar prévia de áudio',
+    hint: 'Os ajustes são salvos com o avatar. O áudio selecionado permanece no navegador. Este modo acompanha o volume, não reconhece fonemas.',
+    error: 'Não foi possível reproduzir este arquivo de áudio.',
+  },
   zh: {
     movementTitle: '口型动作风格', calm: '舒缓', default: '标准', lively: '轻快', subtle: '含蓄', big: '鲜明', custom: '自定义',
     demoHint: '选择风格即可预览口型动作。', granularity: '口型动作', granularityLow: '舒缓', granularityHigh: '轻快',

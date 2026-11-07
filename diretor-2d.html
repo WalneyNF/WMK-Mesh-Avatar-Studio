@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WMK Diretor 2D — Estúdio de Novelas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1222;color:#e7efff;font:14px system-ui}header{padding:13px 18px;background:#182642;display:flex;align-items:center;gap:20px;flex-wrap:wrap}a{color:#7de3ff}main{display:grid;grid-template-columns:minmax(280px,350px) minmax(440px,1fr) minmax(260px,320px);gap:12px;padding:12px;height:calc(100vh - 68px)}section{background:#17243b;border:1px solid #344b70;border-radius:10px;padding:14px;overflow:auto}h2{margin:5px 0 12px;font-size:17px}button,select,input,textarea{background:#243958;color:#fff;border:1px solid #537099;border-radius:6px;padding:8px}button{cursor:pointer}button:hover{background:#355782}textarea{width:100%;height:48vh;font:12px/1.45 Consolas,monospace;resize:vertical}#stage{width:100%;aspect-ratio:16/9;background:#080e1b;border-radius:8px;display:block}#scrub{width:100%}.buttons{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}#log{white-space:pre-wrap;font:12px/1.5 Consolas,monospace;color:#bde5fb}label{display:block;margin:10px 0}#timeline{display:flex;gap:4px;overflow:auto;padding:8px 0}#timeline>div{min-width:85px;padding:7px;background:#273d5e;border-radius:5px;font-size:11px}small,.note{color:#a9c3df}#status{color:#9ee3b5}select{max-width:100%}@media(max-width:1100px){main{display:block;height:auto}section{margin-bottom:12px}textarea{height:300px}}</style></head>
+<body><header><strong>🎬 WMK Diretor 2D — Laboratório de Novelas</strong><a href="/laboratorio-expressoes.html">Laboratório WEL</a><small>Walney Moreira Klein — walneyk@hotmail.com</small></header>
+<main><section><h2>Roteiro JSON</h2><p class="note">Um roteiro declarativo controla cenários, personagens, falas, enquadramento e expressões. Demonstração experimental em 2D.</p><textarea id="script" spellcheck="false"></textarea><div class="buttons"><button id="example">Exemplo: cena dramática</button><button id="validate">Validar</button><button id="export">Exportar JSON</button><label style="margin:0">Importar <input type="file" id="import" accept=".json,application/json" style="width:150px"></label></div><p class="note">A IA pode produzir o JSON seguindo o contrato deste exemplo. A voz usa a síntese disponível no navegador.</p></section>
+<section><h2>Palco e câmera</h2><div class="buttons"><button id="zoom-out">−</button><button id="zoom-in">＋</button><label style="margin:0">Zoom <input id="zoom-value" type="number" min="25" max="400" step="10" value="100" style="width:70px">%</label><button id="zoom-reset">100%</button><button id="zoom-fit">Ajustar</button><label style="margin:0"><input type="checkbox" id="cinematic-camera"> Permitir zoom do roteiro</label><label style="margin:0">Pan X <input id="pan-x" type="number" value="0" step="10" style="width:68px"></label><label style="margin:0">Y <input id="pan-y" type="number" value="0" step="10" style="width:68px"></label></div><div id="stage-viewport" style="overflow:auto;max-height:65vh;background:#070d18;border-radius:8px"><canvas id="stage" width="960" height="540" style="max-width:none;display:block"></canvas></div><div class="buttons"><button id="play">▶ Dirigir cena</button><button id="stop">■ Parar</button><label style="margin:0"><input id="voice" type="checkbox"> Voz do navegador</label></div><input id="scrub" type="range" min="0" max="100" value="0"><div id="status">Pronto para gravar o primeiro ensaio.</div><h2>Timeline</h2><div id="timeline"></div><p class="note">Esta versão reproduz a cena em tempo real, mas ainda não exporta MP4. As bocas e sobrancelhas artificiais foram removidas: as expressões aguardam a integração do motor de deformação facial.</p></section>
+<section><h2>Elenco</h2><label>Personagem visual <select id="project"></select></label><button id="load">Carregar imagem</button><p class="note">O exemplo usa uma imagem do projeto como ator. As falas podem representar personagens diferentes, mas cada personagem precisará de seu próprio rig para ter identidade visual independente.</p><h2>Monitor do diretor</h2><div id="log">Aguardando roteiro…</div><h2>Contrato da IA</h2><p class="note">Formato <code>wmk-scene/0.1</code>. Eventos aceitos: <code>dialogue</code>, <code>expression</code>, <code>camera</code>, <code>pause</code>. Duração de cada evento em milissegundos. Sem execução de scripts externos.</p></section></main>
+<script type="module">
+import {compile,sample,neutral} from './wmk-expression-engine.mjs';
+import {renderFace} from './wmk-facial-renderer.mjs';
+const $=id=>document.getElementById(id),canvas=$('stage'),ctx=canvas.getContext('2d');
+const demo={language:'wmk-scene/0.1',title:'O segredo de NEX',background:'#18233d',characters:[{id:'NEX',name:'NEX',position:0.5}],events:[
+{type:'camera',shot:'wide',durationMs:600},
+{type:'dialogue',character:'NEX',text:'Eu preciso contar uma coisa. Nada será como antes.',emotion:'serious',durationMs:2900},
+{type:'expression',character:'NEX',region:'brows',values:{browA:12,browB:10},durationMs:600},
+{type:'camera',shot:'close',durationMs:700},
+{type:'dialogue',character:'NEX',text:'Descobri que podemos criar uma novela inteira com comandos JSON!',emotion:'surprised',durationMs:3600},
+{type:'expression',character:'NEX',region:'mouth',values:{mouthOpen:0,mouthForm:0,mouthWidth:100,jawDrop:0},durationMs:450},
+{type:'pause',durationMs:700},
+{type:'dialogue',character:'NEX',text:'E este é apenas o primeiro capítulo.',emotion:'happy',durationMs:2600}
+]};
+let scene=null,events=[],total=0,actor=new Image(),actorLoaded=false,playing=false,start=0,raf=null,lastSpeech=-1,landmarks=null,mouthBridge=null,faceCanvas=document.createElement("canvas");
+$('script').value=JSON.stringify(demo,null,2);
+function parse(){
+ const d=JSON.parse($('script').value),err=[];
+ if(d.language!=='wmk-scene/0.1')err.push('language inválida');
+ if(typeof d.title!=='string')err.push('title obrigatório');
+ if(!Array.isArray(d.events)||!d.events.length||d.events.length>200)err.push('events: 1 a 200 eventos');
+ if(!Array.isArray(d.characters)||!d.characters.length)err.push('characters obrigatório');
+ const ids=new Set((d.characters||[]).map(c=>c.id));
+ let t=0;const list=[];
+ for(const [i,e] of (Array.isArray(d.events)?d.events:[]).entries()){
+  const label='events['+i+']';
+  if(!['dialogue','expression','camera','pause'].includes(e.type))err.push(label+' tipo desconhecido');
+  if(!Number.isInteger(e.durationMs)||e.durationMs<50||e.durationMs>30000)err.push(label+' duração inválida (50..30000)');
+  if(['dialogue','expression'].includes(e.type)&&!ids.has(e.character))err.push(label+' personagem inexistente');
+  if(e.type==='dialogue'&&(typeof e.text!=='string'||e.text.length>600))err.push(label+' texto inválido');
+  if(e.type==='camera'&&!['wide','medium','close'].includes(e.shot))err.push(label+' enquadramento inválido');
+  if(e.type==='expression'){try{compile({language:'wmk-expression/0.1',steps:[{action:'set',region:e.region,values:e.values,durationMs:e.durationMs}]})}catch(ex){err.push(label+': '+ex.message)}}
+  list.push({...e,from:t,to:t+e.durationMs});t+=e.durationMs||0;
+ }
+ if(t>600000)err.push('Cena acima de 10 minutos');
+ if(err.length)throw Error(err.join('\n'));
+ return {d,list,total:t};
+}
+function loadScene(){const p=parse();scene=p.d;events=p.list;total=p.total;$('scrub').max=total;$('timeline').replaceChildren();for(const e of events){const div=document.createElement('div');div.textContent=e.type+' · '+(e.durationMs/1000).toFixed(1)+'s';div.title=e.text||e.shot||e.region||'';$('timeline').append(div)}return p}
+function currentEvent(ms){return events.findIndex(e=>ms>=e.from&&ms<e.to)}
+function expressionAt(ms){
+ let values=neutral();
+ for(const e of events){
+  if(e.from>ms)break;
+  if(e.type==='expression'){
+   const plan=compile({language:'wmk-expression/0.1',steps:[{action:'set',region:e.region,values:e.values,durationMs:e.durationMs}]},values);
+   values=sample(plan,Math.min(e.durationMs,Math.max(0,ms-e.from)));
+  }else if(e.type==='dialogue'){
+   const speaking=ms>=e.from&&ms<e.to;
+   if(speaking){const elapsed=ms-e.from,period=440,phase=elapsed%period,syllable=Math.sin(Math.PI*phase/period)**2,fade=Math.min(1,elapsed/160,(e.to-ms)/180);const wave=Math.max(0,syllable*fade);values={...values,mouthOpen:4+wave*32,mouthForm:e.emotion==='surprised'?45:15,jawDrop:4+wave*20,browA:e.emotion==='surprised'?9:e.emotion==='serious'?-4:3,browB:e.emotion==='surprised'?9:e.emotion==='serious'?-4:3}}
+   else values={...values,mouthOpen:0,jawDrop:0};
+  }
+ }
+ return values;
+}
+function draw(ms=0){
+ if(!scene)return;
+ const w=960,h=540;
+ ctx.clearRect(0,0,w,h);ctx.fillStyle=scene.background||'#18233d';ctx.fillRect(0,0,w,h);
+ const grd=ctx.createLinearGradient(0,0,0,h);grd.addColorStop(0,'#26395a');grd.addColorStop(1,'#0b1221');ctx.fillStyle=grd;ctx.fillRect(0,0,w,h);
+ ctx.fillStyle='#0a1020';ctx.fillRect(0,440,w,100);ctx.fillStyle='#31476d';ctx.fillRect(0,437,w,4);
+ const idx=currentEvent(Math.min(ms,Math.max(0,total-1)));const active=events[Math.max(0,idx)]||{};
+ let shot='medium';if($('cinematic-camera').checked){for(const e of events){if(e.from>ms)break;if(e.type==='camera')shot=e.shot}}
+ const scale=($('cinematic-camera').checked?({wide:0.62,medium:0.88,close:1.3}[shot]||0.88):0.88)*Number($('zoom-value').value)/100;
+ const vals=expressionAt(ms);
+ ctx.save();ctx.translate(w/2+Number($("pan-x").value),445+Number($("pan-y").value));ctx.scale(scale,scale);
+ if(actorLoaded){const size=420;const ratio=actor.naturalWidth/actor.naturalHeight;faceCanvas.width=actor.naturalWidth;faceCanvas.height=actor.naturalHeight;const fc=faceCanvas.getContext('2d');if(!renderFace(fc,actor,mouthBridge,vals))fc.drawImage(actor,0,0);ctx.drawImage(faceCanvas,-size*ratio/2,-size,size*ratio,size)}
+ else{ctx.fillStyle='#526c99';ctx.beginPath();ctx.arc(0,-240,105,0,Math.PI*2);ctx.fill();ctx.fillRect(-85,-135,170,140);ctx.fillStyle='#d7e7ff';ctx.font='28px system-ui';ctx.textAlign='center';ctx.fillText('NEX',0,-210)}
+ // Marcadores de interpretação procedural; a animação definitiva virá do rig.
+ const imgSize=420, imgRatio=actorLoaded?actor.naturalWidth/actor.naturalHeight:1;
+ const locate=(name,fallback)=>{const pts=landmarks?.regions?.[name];if(!actorLoaded||!Array.isArray(pts)||!pts.length)return fallback;const x=pts.reduce((a,p)=>a+p.x,0)/pts.length;const y=pts.reduce((a,p)=>a+p.y,0)/pts.length;return [(x/actor.naturalWidth-.5)*imgSize*imgRatio,-imgSize+(y/actor.naturalHeight)*imgSize]};
+ const [mouthX,mouthY]=locate('face_mouth',[0,actorLoaded?-260:-205]);
+ // Não desenhar boca artificial: a imagem original permanece intacta até o motor de deformação ser integrado.
+ // Não sobrepor sobrancelhas artificiais ao personagem.
+ ctx.restore();
+ ctx.fillStyle='rgba(7,14,27,.82)';ctx.fillRect(25,20,390,47);ctx.fillStyle='#fff';ctx.font='bold 23px system-ui';ctx.fillText(scene.title,40,51);
+ const dialogue=active.type==='dialogue'?active:null;
+ if(dialogue){ctx.fillStyle='rgba(7,14,27,.9)';ctx.fillRect(60,440,840,83);ctx.fillStyle='#8fe3ff';ctx.font='bold 19px system-ui';ctx.fillText(dialogue.character,80,466);ctx.fillStyle='white';ctx.font='19px system-ui';wrap(dialogue.text,80,491,790,24)}
+ $('log').textContent='Cena: '+scene.title+'\nTempo: '+Math.round(ms)+' / '+total+' ms\nEvento: '+(idx+1)+' / '+events.length+'\nAção: '+(active.type||'fim')+'\nCâmera: '+shot+'\nBoca: '+vals.mouthOpen.toFixed(1)+'\nSobrancelhas: '+vals.browA.toFixed(1)+' / '+vals.browB.toFixed(1)+'\n'+(active.text||'');
+ $('scrub').value=Math.round(ms);
+}
+function wrap(str,x,y,max,line){const words=str.split(/\s+/);let row='';for(const word of words){const next=row?row+' '+word:word;if(ctx.measureText(next).width>max&&row){ctx.fillText(row,x,y);y+=line;row=word}else row=next}if(row)ctx.fillText(row,x,y)}
+function stop(){playing=false;if(raf!==null)cancelAnimationFrame(raf);raf=null;if('speechSynthesis'in window)speechSynthesis.cancel()}
+function frame(now){if(!playing)return;const ms=Math.min(total,now-start),idx=currentEvent(ms),e=events[idx];if(e&&e.type==='dialogue'&&idx!==lastSpeech){lastSpeech=idx;if($('voice').checked&&'speechSynthesis'in window){speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(e.text);utter.lang='pt-BR';utter.rate=1.05;speechSynthesis.speak(utter)}}draw(ms);if(ms<total)raf=requestAnimationFrame(frame);else{stop();draw(0);$('status').textContent='Cena concluída. Câmera restaurada ao início.'}}
+$('play').onclick=()=>{try{stop();loadScene();lastSpeech=-1;playing=true;start=performance.now();$('status').textContent='Gravando ensaio…';raf=requestAnimationFrame(frame)}catch(e){$('status').textContent='Erro: '+e.message}};
+$('stop').onclick=()=>{stop();$('status').textContent='Cena interrompida.'};
+$('validate').onclick=()=>{try{const p=loadScene();draw(0);$('status').textContent='JSON válido: '+p.list.length+' eventos, '+(p.total/1000).toFixed(1)+' s.'}catch(e){$('status').textContent='Erro: '+e.message}};
+$('example').onclick=()=>{$('script').value=JSON.stringify(demo,null,2);$('validate').click()};
+$('scrub').oninput=()=>{stop();draw(Number($('scrub').value))};
+$('export').onclick=()=>{try{loadScene();const blob=new Blob([JSON.stringify(scene,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='wmk-cena.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){$('status').textContent=e.message}};
+$('import').onchange=async e=>{const f=e.target.files[0];if(f){$('script').value=await f.text();$('validate').click()}};
+$('load').onclick=()=>{const name=$('project').value;if(!name)return;actorLoaded=false;actor=new Image();actor.onload=()=>{actorLoaded=true;draw(Number($('scrub').value));$('status').textContent='Imagem carregada: '+name};actor.onerror=()=>{$('status').textContent='Falha ao carregar source.png'};landmarks=null;mouthBridge=null;fetch('/__studio/mouth-bridge/'+encodeURIComponent(name)).then(r=>r.ok?r.json():null).then(d=>{mouthBridge=d;draw(Number($('scrub').value))}).catch(()=>{});fetch('/__studio/landmarks/'+encodeURIComponent(name)).then(r=>r.ok?r.json():null).then(d=>{landmarks=d;draw(Number($('scrub').value))}).catch(()=>{});actor.src='/__studio/projects/'+encodeURIComponent(name)+'/source.png'};
+(async()=>{try{const r=await fetch('/__studio/drafts');if(r.ok){const names=await r.json();for(const name of names){const option=document.createElement('option');option.value=option.textContent=name;$('project').append(option)}if(names.length)$('load').click()}}catch(e){$('status').textContent='Sem backend: prévia com ator ilustrativo.'}})();
+for(const id of ['zoom-value','pan-x','pan-y'])$(id).oninput=()=>draw(Number($('scrub').value));
+$('zoom-in').onclick=()=>{$('zoom-value').value=Math.min(400,Number($('zoom-value').value)+25);draw(Number($('scrub').value))};
+$('zoom-out').onclick=()=>{$('zoom-value').value=Math.max(25,Number($('zoom-value').value)-25);draw(Number($('scrub').value))};
+$('zoom-reset').onclick=()=>{$('zoom-value').value=100;$('pan-x').value=0;$('pan-y').value=0;draw(Number($('scrub').value))};
+$('cinematic-camera').onchange=()=>draw(Number($('scrub').value));
+$('zoom-fit').onclick=()=>{const v=$('stage-viewport');const factor=Math.min(v.clientWidth/960,v.clientHeight/540);$('zoom-value').value=Math.max(25,Math.min(400,Math.round(factor*100)));$('pan-x').value=0;$('pan-y').value=0;draw(Number($('scrub').value))};
+$('validate').click();
+</script></body></html>
