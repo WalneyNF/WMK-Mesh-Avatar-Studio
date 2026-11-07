@@ -24,7 +24,7 @@ Abra PowerShell ou Prompt de Comando:
 
 ```bat
 cd /d C:erramentas
-git clone https://github.com/WalneyNF/mesh-avatar-studio.git
+git clone https://github.com/WalneyNF/WMK-Mesh-Avatar-Studio.git
 cd mesh-avatar-studio
 npm install
 npm run doctor
@@ -33,7 +33,7 @@ npm run dev
 
 Se você já instalou o projeto, **não clone novamente**. Basta entrar na pasta existente e executar `npm run doctor` e `npm run dev`.
 
-Abra o endereço mostrado pelo Vite, geralmente `http://127.0.0.1:5173/`. Se a porta estiver ocupada, use o endereço informado pelo terminal. Escolha **PT-BR** no seletor de idiomas.
+Abra o endereço mostrado pelo Vite, geralmente `http://127.0.0.1:4173/`. Se a porta estiver ocupada, use o endereço informado pelo terminal. Escolha **PT-BR** no seletor de idiomas.
 
 ### Dependência opcional para criação e testes
 
@@ -111,3 +111,13 @@ A logo oficial deve ficar em `logo.png`. Os estilos estão em `src/editor/style.
 Este fork preserva os direitos e licenças dos autores e componentes originais. O código original é MIT, mas **o personagem de exemplo Miko não é coberto pela licença MIT**; consulte [os termos do personagem](samples/miko-qipao/MIKO_ASSET_TERMS.md). MediaPipe e modelos relacionados têm licenças próprias em `vendor/mediapipe/`.
 
 **Personalização WMK:** Walney Moreira Klein — walneyk@hotmail.com.
+
+
+
+
+## Documentação em português
+
+- [Índice público dos manuais](manuais/index.html)
+- [Manual completo dos testes do NEX](manuais/manual-completo-testes-nex.html)
+
+**Estado atual:** somente o manual de testes do NEX está confirmado como publicado nesta pasta. Outros guias e funcionalidades permanecem na cópia local e ainda precisam de revisão e publicação. O manual distingue testes verificados de animações experimentais.
